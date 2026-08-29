@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.10.2)
+project(scannerpro C CXX)
+add_library(spro SHARED nativelic.cpp license.cpp admin.cpp adminapi.cpp fetch.cpp str.cpp native-scan.cpp)
+set_target_properties(spro PROPERTIES CXX_VISIBILITY_PRESET hidden)
+target_compile_options(spro PRIVATE -O2 -fvisibility=hidden)
