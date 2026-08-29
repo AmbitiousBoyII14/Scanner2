@@ -1,0 +1,3417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0b0f14">
+<title>ScannerKeys — Pro Key Manager</title>
+
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+:root{
+  --bg:#080c11;
+  --panel:#10161e;
+  --panel2:#0c1118;
+  --border:#202a36;
+  --text:#e8edf4;
+  --muted:#778292;
+  --green:#22c55e;
+  --blue:#3b82f6;
+  --yellow:#eab308;
+  --red:#ef4444;
+  --cyan:#06b6d4;
+  --purple:#a855f7;
+  --orange:#f97316;
+}
+
+body{
+  background:
+    radial-gradient(circle at top right,rgba(34,197,94,.07),transparent 30%),
+    radial-gradient(circle at top left,rgba(59,130,246,.05),transparent 28%),
+    var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  font-family:Inter,"Segoe UI",system-ui,sans-serif;
+  padding:22px 14px 70px;
+}
+
+button,input,select{
+  font:inherit;
+}
+
+button{
+  user-select:none;
+  cursor:pointer;
+}
+
+.mono{
+  font-family:"JetBrains Mono","Courier New",monospace;
+}
+
+.wrap{
+  max-width:1200px;
+  margin:auto;
+}
+
+/* Header */
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+
+.logo{
+  font-size:24px;
+  font-weight:800;
+  letter-spacing:2px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.logo span{
+  color:var(--green);
+}
+
+.logo i{
+  font-size:28px;
+}
+
+.subtitle{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:4px;
+}
+
+.status{
+  border:1px solid var(--border);
+  background:var(--panel);
+  border-radius:20px;
+  padding:7px 11px;
+  font-size:10px;
+  color:var(--muted);
+  white-space:nowrap;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.status::before{
+  content:"\200B";
+  display:inline-block;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--red);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100%{opacity:1;}
+  50%{opacity:0.5;}
+}
+
+.status.online{
+  color:var(--green);
+}
+
+.status.online::before{
+  background:var(--green);
+  box-shadow:0 0 8px var(--green);
+  animation:none;
+}
+
+/* Stats Grid */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.stat{
+  border:1px solid var(--border);
+  background:var(--panel2);
+  border-radius:11px;
+  padding:13px;
+  min-width:0;
+  transition:all 0.2s;
+}
+
+.stat:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(0,0,0,0.2);
+}
+
+.stat-label{
+  color:var(--muted);
+  font-size:9px;
+  letter-spacing:1px;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  text-transform:uppercase;
+}
+
+.stat-value{
+  font-size:24px;
+  font-weight:700;
+  margin-top:6px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.stat.green .stat-value{color:var(--green)}
+.stat.blue .stat-value{color:var(--blue)}
+.stat.yellow .stat-value{color:var(--yellow)}
+.stat.red .stat-value{color:var(--red)}
+.stat.purple .stat-value{color:var(--purple)}
+.stat.orange .stat-value{color:var(--orange)}
+.stat.cyan .stat-value{color:var(--cyan)}
+
+/* Cards */
+.card{
+  background:rgba(16,22,30,.94);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 8px 30px rgba(0,0,0,.12);
+}
+
+.card-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:13px;
+  flex-wrap:wrap;
+}
+
+.card h2{
+  font-size:11px;
+  letter-spacing:1.6px;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  text-transform:uppercase;
+}
+
+.card h2 i{
+  font-size:14px;
+}
+
+/* Form Elements */
+label{
+  display:block;
+  font-size:10px;
+  color:var(--muted);
+  margin:10px 0 5px;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+}
+
+input,select{
+  width:100%;
+  background:#090e14;
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  padding:10px 11px;
+  outline:none;
+  font-size:12px;
+  transition:all 0.2s;
+}
+
+input:focus,
+select:focus{
+  border-color:var(--green);
+  box-shadow:0 0 0 2px rgba(34,197,94,.08);
+}
+
+input::placeholder{
+  color:#4b5563;
+}
+
+.row{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.row>*{
+  flex:1;
+  min-width:150px;
+}
+
+/* Tabs */
+.tabs{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:7px;
+  margin-bottom:14px;
+}
+
+.tab{
+  text-align:center;
+  padding:11px 5px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:var(--panel);
+  color:var(--muted);
+  cursor:pointer;
+  font-size:10px;
+  letter-spacing:1px;
+  transition:.15s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+
+.tab:hover{
+  border-color:#354354;
+}
+
+.tab.on{
+  border-color:var(--green);
+  color:var(--green);
+  background:rgba(34,197,94,.04);
+}
+
+.tab i{
+  font-size:16px;
+}
+
+/* Buttons */
+.btn{
+  border:1px solid var(--green);
+  background:transparent;
+  color:var(--green);
+  padding:10px 13px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:11px;
+  letter-spacing:1px;
+  transition:.15s;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+}
+
+.btn:hover:not(:disabled){
+  background:var(--green);
+  color:#071009;
+}
+
+.btn:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+.btn.blue{
+  border-color:var(--blue);
+  color:var(--blue);
+}
+
+.btn.blue:hover:not(:disabled){
+  background:var(--blue);
+  color:white;
+}
+
+.btn.red{
+  border-color:var(--red);
+  color:var(--red);
+}
+
+.btn.red:hover:not(:disabled){
+  background:var(--red);
+  color:white;
+}
+
+.btn.gray{
+  border-color:#4b5563;
+  color:#9ca3af;
+}
+
+.btn.gray:hover:not(:disabled){
+  background:#4b5563;
+  color:white;
+}
+
+.btn.purple{
+  border-color:var(--purple);
+  color:var(--purple);
+}
+
+.btn.purple:hover:not(:disabled){
+  background:var(--purple);
+  color:white;
+}
+
+.btn.orange{
+  border-color:var(--orange);
+  color:var(--orange);
+}
+
+.btn.orange:hover:not(:disabled){
+  background:var(--orange);
+  color:white;
+}
+
+.btn.cyan{
+  border-color:var(--cyan);
+  color:var(--cyan);
+}
+
+.btn.cyan:hover:not(:disabled){
+  background:var(--cyan);
+  color:white;
+}
+
+.btn.full{
+  width:100%;
+  margin-top:11px;
+}
+
+.btn.small{
+  padding:7px 9px;
+  font-size:9px;
+}
+
+.btn i{
+  font-size:14px;
+}
+
+/* Key Display */
+.key-display{
+  background:#080d13;
+  border:1px dashed #293544;
+  border-radius:10px;
+  padding:17px 10px;
+  text-align:center;
+  color:var(--blue);
+  font-size:17px;
+  letter-spacing:1px;
+  word-break:break-all;
+  margin-bottom:10px;
+  position:relative;
+}
+
+.key-display i{
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  cursor:pointer;
+  opacity:0.5;
+  font-size:18px;
+}
+
+.key-display i:hover{
+  opacity:1;
+}
+
+.key-list{
+  min-height:40px;
+}
+
+/* Key Items */
+.key-item{
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#0c1219;
+  padding:12px;
+  margin-bottom:8px;
+  transition:all 0.2s;
+}
+
+.key-item:hover{
+  border-color:#354354;
+}
+
+.key-item.expired{
+  opacity:0.6;
+  border-color:var(--red);
+}
+
+.key-item.unimported{
+  border-left:3px solid var(--orange);
+}
+
+.key-item.auto-disabled{
+  border-left:3px solid var(--purple);
+}
+
+.key-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.key-value{
+  font-size:13px;
+  word-break:break-all;
+  color:#f1f5f9;
+  font-weight:500;
+}
+
+.badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  flex-shrink:0;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  border:1px solid;
+  border-radius:20px;
+  padding:3px 7px;
+  font-size:8px;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+}
+
+.badge i{
+  font-size:10px;
+}
+
+.on{
+  color:var(--green);
+  border-color:var(--green);
+}
+
+.off{
+  color:var(--red);
+  border-color:var(--red);
+}
+
+.trial{
+  color:var(--yellow);
+  border-color:var(--yellow);
+}
+
+.premium{
+  color:var(--blue);
+  border-color:var(--blue);
+}
+
+.life{
+  color:var(--cyan);
+  border-color:var(--cyan);
+}
+
+.expired{
+  color:var(--red);
+  border-color:var(--red);
+}
+
+.unimported{
+  color:var(--orange);
+  border-color:var(--orange);
+}
+
+.auto-disabled{
+  color:var(--purple);
+  border-color:var(--purple);
+}
+
+.key-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 14px;
+  margin-top:7px;
+  color:var(--muted);
+  font-size:9px;
+}
+
+.key-meta i{
+  font-size:11px;
+  margin-right:2px;
+}
+
+.key-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--border);
+}
+
+/* Device List */
+.device-list{
+  margin-top:8px;
+  padding:8px;
+  background:#090e14;
+  border-radius:8px;
+  border:1px solid var(--border);
+}
+
+.device-item{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:6px 0;
+  border-bottom:1px solid var(--border);
+  font-size:10px;
+}
+
+.device-item:last-child{
+  border-bottom:none;
+}
+
+.device-info{
+  flex:1;
+  min-width:150px;
+}
+
+.device-info i{
+  font-size:12px;
+  margin-right:4px;
+  color:var(--muted);
+}
+
+/* Live Countdown Timer */
+.live-countdown{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-family:monospace;
+  font-size:11px;
+  font-weight:600;
+  padding:4px 8px;
+  border-radius:6px;
+  background:rgba(0,0,0,0.3);
+}
+
+.live-countdown i{
+  font-size:14px;
+}
+
+.live-countdown.expired{
+  color:var(--red);
+  background:rgba(239,68,68,0.1);
+  border:1px solid var(--red);
+}
+
+.live-countdown.warning{
+  color:var(--orange);
+  background:rgba(249,115,22,0.1);
+  border:1px solid var(--orange);
+}
+
+.live-countdown.success{
+  color:var(--green);
+  background:rgba(34,197,94,0.1);
+  border:1px solid var(--green);
+}
+
+.live-countdown.lifetime{
+  color:var(--cyan);
+  background:rgba(6,182,212,0.1);
+  border:1px solid var(--cyan);
+}
+
+/* Device Usage Badge */
+.device-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:10px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+
+.device-badge:hover{
+  transform:scale(1.05);
+}
+
+.device-badge i{
+  font-size:14px;
+}
+
+.device-badge.full{
+  background:rgba(239,68,68,0.15);
+  border:1px solid var(--red);
+  color:var(--red);
+}
+
+.device-badge.warning{
+  background:rgba(249,115,22,0.15);
+  border:1px solid var(--orange);
+  color:var(--orange);
+}
+
+.device-badge.success{
+  background:rgba(34,197,94,0.15);
+  border:1px solid var(--green);
+  color:var(--green);
+}
+
+/* Device Popup */
+.device-popup{
+  position:absolute;
+  background:#10161e;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px;
+  z-index:100;
+  min-width:300px;
+  max-width:400px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.5);
+}
+
+.device-popup h4{
+  font-size:12px;
+  color:var(--text);
+  margin-bottom:8px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.device-popup h4 i{
+  font-size:16px;
+}
+
+.device-popup .device-entry{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  padding:6px 0;
+  border-bottom:1px solid var(--border);
+  font-size:10px;
+}
+
+.device-popup .device-entry:last-child{
+  border-bottom:none;
+}
+
+.device-popup .device-entry span{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:var(--muted);
+}
+
+.device-popup .device-entry span i{
+  font-size:12px;
+  width:14px;
+}
+
+.device-popup .close{
+  position:absolute;
+  top:8px;
+  right:8px;
+  background:none;
+  border:none;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:16px;
+  padding:2px;
+}
+
+.device-popup .close:hover{
+  color:var(--text);
+}
+
+/* Timer Display */
+.timer{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:10px;
+}
+
+.timer i{
+  font-size:12px;
+}
+
+.timer.expired{
+  color:var(--red);
+}
+
+.timer.warning{
+  color:var(--orange);
+}
+
+.timer.success{
+  color:var(--green);
+}
+
+/* Toolbar */
+.toolbar{
+  display:flex;
+  gap:7px;
+  margin-bottom:10px;
+  flex-wrap:wrap;
+}
+
+.toolbar input{
+  flex:1;
+  min-width:200px;
+}
+
+.toolbar select{
+  width:150px;
+}
+
+/* Empty State */
+.empty{
+  border:1px dashed var(--border);
+  border-radius:9px;
+  padding:25px;
+  text-align:center;
+  color:var(--muted);
+  font-size:11px;
+}
+
+.empty i{
+  font-size:24px;
+  margin-bottom:8px;
+  display:block;
+  opacity:0.5;
+}
+
+.hidden{
+  display:none!important;
+}
+
+/* Modal */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:15px;
+  z-index:100;
+}
+
+.modal-box{
+  width:100%;
+  max-width:430px;
+  background:#10161e;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:17px;
+  box-shadow:0 20px 70px rgba(0,0,0,.5);
+  max-height:90vh;
+  overflow-y:auto;
+}
+
+.modal-title{
+  font-size:14px;
+  font-weight:700;
+  margin-bottom:5px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.modal-title i{
+  font-size:18px;
+}
+
+.modal-text{
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.6;
+  margin-bottom:10px;
+}
+
+.modal-actions{
+  display:flex;
+  gap:7px;
+  margin-top:13px;
+}
+
+.modal-actions>*{
+  flex:1;
+}
+
+#modalInputArea{
+  margin:10px 0;
+}
+
+#modalInputArea input,
+#modalInputArea select{
+  width:100%;
+  margin-bottom:8px;
+}
+
+/* Toast */
+#toast{
+  position:fixed;
+  left:50%;
+  bottom:25px;
+  transform:translateX(-50%);
+  display:none;
+  max-width:92vw;
+  padding:11px 17px;
+  border-radius:10px;
+  border:1px solid var(--green);
+  background:#10161e;
+  color:var(--green);
+  font-size:11px;
+  text-align:center;
+  z-index:101;
+  box-shadow:0 10px 40px rgba(0,0,0,.4);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+#toast i{
+  font-size:16px;
+}
+
+#toast.err{
+  border-color:var(--red);
+  color:var(--red);
+}
+
+#toast.err i{
+  color:var(--red);
+}
+
+/* Countdown Timer */
+.countdown{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-family:monospace;
+  font-size:10px;
+}
+
+.countdown i{
+  font-size:12px;
+}
+
+/* Section Headers */
+.section-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:15px 0 10px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+  font-size:10px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+.section-header i{
+  font-size:14px;
+}
+
+/* Form Group */
+.form-group{
+  margin-bottom:12px;
+}
+
+.form-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.form-row > *{
+  flex:1;
+  min-width:120px;
+}
+
+/* Loading State */
+.loading{
+  position:relative;
+  pointer-events:none;
+}
+
+.loading::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.loading::before{
+  content:"";
+  width:16px;
+  height:16px;
+  border:2px solid transparent;
+  border-top-color:var(--green);
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg);}
+}
+
+/* Responsive */
+@media(max-width:768px){
+  .grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .tabs{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .key-top{
+    display:block;
+  }
+
+  .badges{
+    margin-top:7px;
+  }
+
+  .row{
+    flex-direction:column;
+    gap:0;
+  }
+
+  .toolbar{
+    flex-direction:column;
+  }
+
+  .toolbar select{
+    width:100%;
+  }
+
+  .header{
+    align-items:flex-start;
+  }
+
+  .status{
+    font-size:9px;
+  }
+
+  .modal-box{
+    margin:10px;
+  }
+  
+  .device-popup{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    max-width:90vw;
+  }
+}
+
+@media(max-width:480px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+  
+  .tabs{
+    grid-template-columns:1fr 1fr;
+  }
+  
+  .btn{
+    padding:8px 10px;
+    font-size:10px;
+  }
+  
+  .key-value{
+    font-size:12px;
+  }
+  
+  .stat-value{
+    font-size:20px;
+  }
+  
+  .live-countdown{
+    font-size:10px;
+    padding:3px 6px;
+  }
+  
+  .live-countdown i{
+    font-size:12px;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{
+  width:6px;
+  height:6px;
+}
+
+::-webkit-scrollbar-track{
+  background:#080d13;
+}
+
+::-webkit-scrollbar-thumb{
+  background:#293544;
+  border-radius:3px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+  background:#354354;
+}
+
+/* Tooltip */
+.tooltip{
+  position:relative;
+}
+
+.tooltip::after{
+  content:attr(data-tooltip);
+  position:absolute;
+  bottom:100%;
+  left:50%;
+  transform:translateX(-50%);
+  background:#10161e;
+  color:var(--text);
+  padding:5px 8px;
+  border-radius:4px;
+  font-size:10px;
+  white-space:nowrap;
+  opacity:0;
+  visibility:hidden;
+  transition:all 0.2s;
+  z-index:10;
+  border:1px solid var(--border);
+}
+
+.tooltip:hover::after{
+  opacity:1;
+  visibility:visible;
+}
+
+/* Auto-disable indicator */
+.auto-disable-notice{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:9px;
+  color:var(--purple);
+  padding:2px 6px;
+  border-radius:4px;
+  background:rgba(168,85,247,0.1);
+  border:1px solid var(--purple);
+}
+
+.auto-disable-notice i{
+  font-size:11px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <div class="header">
+    <div>
+      <div class="logo"><i class="material-icons">vpn_key</i>SCANNER<span>KEYS</span></div>
+      <div class="subtitle">PRO LICENSE MANAGEMENT CONSOLE</div>
+    </div>
+    <div id="connectionStatus" class="status"><i class="material-icons">cloud_off</i> OFFLINE</div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="grid">
+    <div class="stat">
+      <div class="stat-label"><i class="material-icons">tag</i> TOTAL</div>
+      <div class="stat-value" id="statTotal"><i class="material-icons">tag</i> 0</div>
+    </div>
+
+    <div class="stat green">
+      <div class="stat-label"><i class="material-icons">check_circle</i> ACTIVE</div>
+      <div class="stat-value" id="statActive"><i class="material-icons">check_circle</i> 0</div>
+    </div>
+
+    <div class="stat yellow">
+      <div class="stat-label"><i class="material-icons">timer</i> TRIAL</div>
+      <div class="stat-value" id="statTrial"><i class="material-icons">timer</i> 0</div>
+    </div>
+
+    <div class="stat blue">
+      <div class="stat-label"><i class="material-icons">star</i> PREMIUM</div>
+      <div class="stat-value" id="statPremium"><i class="material-icons">star</i> 0</div>
+    </div>
+
+    <div class="stat orange">
+      <div class="stat-label"><i class="material-icons">warning</i> UNIMPORTED</div>
+      <div class="stat-value" id="statUnimported"><i class="material-icons">warning</i> 0</div>
+    </div>
+
+    <div class="stat red">
+      <div class="stat-label"><i class="material-icons">do_not_disturb</i> EXPIRED</div>
+      <div class="stat-value" id="statExpired"><i class="material-icons">do_not_disturb</i> 0</div>
+    </div>
+  </div>
+
+  <!-- CONNECTION -->
+  <div class="card">
+    <div class="card-title">
+      <h2><i class="material-icons">cloud</i> CODEBERG CONNECTION</h2>
+      <button class="btn small gray" id="btnClearConfig"><i class="material-icons">delete</i> CLEAR</button>
+    </div>
+
+    <label><i class="material-icons">key</i> API TOKEN</label>
+    <input id="cfgToken"
+           type="password"
+           placeholder="Codeberg access token (gitea token)"
+           autocomplete="off">
+
+    <div class="row">
+      <div>
+        <label><i class="material-icons">person</i> OWNER</label>
+        <input id="cfgOwner" value="Treacky">
+      </div>
+
+      <div>
+        <label><i class="material-icons">folder</i> REPOSITORY</label>
+        <input id="cfgRepo" value="ScannerKeys">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label><i class="material-icons">insert_drive_file</i> FILE</label>
+        <input id="cfgFile" value="keys.json">
+      </div>
+
+      <div>
+        <label><i class="material-icons">call_merge</i> BRANCH</label>
+        <input id="cfgBranch" value="main">
+      </div>
+    </div>
+
+    <button class="btn full" id="btnConnect"><i class="material-icons">cloud_download</i> CONNECT & LOAD</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab on" data-page="keysPage"><i class="material-icons">list</i> KEYS</div>
+    <div class="tab" data-page="trialPage"><i class="material-icons">timer</i> NEW TRIAL</div>
+    <div class="tab" data-page="premiumPage"><i class="material-icons">star</i> NEW PREMIUM</div>
+    <div class="tab" data-page="toolsPage"><i class="material-icons">build</i> TOOLS</div>
+    <div class="tab" data-page="settingsPage"><i class="material-icons">settings</i> SETTINGS</div>
+  </div>
+
+  <!-- KEYS -->
+  <div class="card" id="keysPage">
+
+    <div class="card-title">
+      <h2><i class="material-icons">vpn_key</i> LICENSE DATABASE <span id="kCount"></span></h2>
+      <button class="btn small gray" id="btnRefresh"><i class="material-icons">refresh</i> REFRESH</button>
+    </div>
+
+    <div class="toolbar">
+      <input id="searchBox" placeholder="🔍 Search key, type, device, customer...">
+
+      <select id="filterType">
+        <option value="all">ALL TYPES</option>
+        <option value="active">ACTIVE</option>
+        <option value="inactive">INACTIVE</option>
+        <option value="trial">TRIAL</option>
+        <option value="premium">PREMIUM</option>
+        <option value="expired">EXPIRED</option>
+        <option value="lifetime">LIFETIME</option>
+        <option value="unimported">UNIMPORTED</option>
+      </select>
+
+      <select id="sortBy">
+        <option value="key">SORT BY KEY</option>
+        <option value="created">NEWEST FIRST</option>
+        <option value="expiry">EXPIRY SOONEST</option>
+        <option value="label">CUSTOMER NAME</option>
+      </select>
+    </div>
+
+    <div id="keyList">
+      <div class="empty"><i class="material-icons">cloud_off</i> Connect to Codeberg to load keys.</div>
+    </div>
+  </div>
+
+  <!-- TRIAL -->
+  <div class="card hidden" id="trialPage">
+
+    <div class="card-title">
+      <h2><i class="material-icons">timer</i> CREATE TRIAL LICENSE</h2>
+    </div>
+
+    <div class="key-display mono" id="trialKey"></div>
+    <button class="btn gray full" onclick="generateKey(true)"><i class="material-icons">autorenew</i> GENERATE NEW KEY</button>
+
+    <div class="section-header"><i class="material-icons">timer</i> TRIAL DURATION</div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="material-icons">exposure</i> DURATION VALUE</label>
+        <input id="trialValue" type="number" min="1" value="10">
+      </div>
+      
+      <div class="form-group">
+        <label><i class="material-icons">schedule</i> TIME UNIT</label>
+        <select id="trialUnit">
+          <option value="minutes">Minutes</option>
+          <option value="hours">Hours</option>
+          <option value="days">Days</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-header"><i class="material-icons">device_hub</i> DEVICE LIMITS</div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="material-icons">devices</i> MAX DEVICES</label>
+        <input id="trialDevices" type="number" min="1" max="100" value="1">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label><i class="material-icons">alarm</i> AUTO-DISABLE ON EXPIRY</label>
+      <select id="trialAutoDisable">
+        <option value="yes">Yes, auto-disable when expired</option>
+        <option value="no" selected>No, keep active (manual disable)</option>
+      </select>
+      <p style="font-size:10px;color:var(--muted);margin-top:4px;">
+        <i class="material-icons" style="font-size:12px;vertical-align:middle;">info</i> 
+        If enabled, key will automatically be disabled when it expires.
+      </p>
+    </div>
+
+    <div class="section-header"><i class="material-icons">alarm</i> IMPORT DEADLINE (Optional)</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="material-icons">exposure</i> DEADLINE VALUE</label>
+        <input id="trialDeadlineValue" type="number" min="0" value="0">
+      </div>
+      
+      <div class="form-group">
+        <label><i class="material-icons">schedule</i> DEADLINE UNIT</label>
+        <select id="trialDeadlineUnit">
+          <option value="hours">Hours</option>
+          <option value="days">Days</option>
+          <option value="weeks">Weeks</option>
+        </select>
+      </div>
+    </div>
+    <p style="font-size:10px;color:var(--muted);margin-top:-8px;">
+      <i class="material-icons" style="font-size:12px;vertical-align:middle;">info</i> 
+      Set to 0 to disable auto-remove. Key will be deleted if not activated within this time.
+    </p>
+
+    <div class="form-group">
+      <label><i class="material-icons">person</i> LICENSE LABEL / CUSTOMER</label>
+      <input id="trialLabel" placeholder="Optional customer name or email">
+    </div>
+
+    <div class="form-group">
+      <label><i class="material-icons">notes</i> NOTES (Optional)</label>
+      <input id="trialNotes" placeholder="Additional notes about this license">
+    </div>
+
+    <button class="btn full" id="btnAddTrial">
+      <i class="material-icons">add</i> CREATE TRIAL LICENSE
+    </button>
+  </div>
+
+  <!-- PREMIUM -->
+  <div class="card hidden" id="premiumPage">
+
+    <div class="card-title">
+      <h2><i class="material-icons">star</i> CREATE PREMIUM LICENSE</h2>
+    </div>
+
+    <div class="key-display mono" id="premKey"></div>
+    <button class="btn blue full" onclick="generateKey(false)"><i class="material-icons">autorenew</i> GENERATE NEW KEY</button>
+
+    <div class="section-header"><i class="material-icons">calendar_today</i> LICENSE DURATION</div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="material-icons">exposure</i> DURATION VALUE</label>
+        <input id="premValue" type="number" min="0" value="30">
+      </div>
+      
+      <div class="form-group">
+        <label><i class="material-icons">schedule</i> TIME UNIT</label>
+        <select id="premUnit">
+          <option value="days">Days</option>
+          <option value="weeks">Weeks</option>
+          <option value="months">Months</option>
+          <option value="years">Years</option>
+        </select>
+      </div>
+    </div>
+    <p style="font-size:10px;color:var(--muted);margin-top:-8px;">
+      <i class="material-icons" style="font-size:12px;vertical-align:middle;">info</i> 
+      Set to 0 for lifetime license (no expiry). The countdown starts when the key is first imported in the APK.
+    </p>
+
+    <div class="section-header"><i class="material-icons">device_hub</i> DEVICE LIMITS</div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="material-icons">devices</i> MAX DEVICES</label>
+        <input id="premDevices" type="number" min="1" max="1000" value="1">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label><i class="material-icons">alarm</i> AUTO-DISABLE ON EXPIRY</label>
+      <select id="premAutoDisable">
+        <option value="yes">Yes, auto-disable when expired</option>
+        <option value="no" selected>No, keep active (manual disable)</option>
+      </select>
+      <p style="font-size:10px;color:var(--muted);margin-top:4px;">
+        <i class="material-icons" style="font-size:12px;vertical-align:middle;">info</i> 
+        If enabled, key will automatically be disabled when it expires.
+      </p>
+    </div>
+
+    <div class="section-header"><i class="material-icons">alarm</i> IMPORT DEADLINE (Optional)</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="material-icons">exposure</i> DEADLINE VALUE</label>
+        <input id="premDeadlineValue" type="number" min="0" value="0">
+      </div>
+      
+      <div class="form-group">
+        <label><i class="material-icons">schedule</i> DEADLINE UNIT</label>
+        <select id="premDeadlineUnit">
+          <option value="hours">Hours</option>
+          <option value="days">Days</option>
+          <option value="weeks">Weeks</option>
+          <option value="months">Months</option>
+        </select>
+      </div>
+    </div>
+    <p style="font-size:10px;color:var(--muted);margin-top:-8px;">
+      <i class="material-icons" style="font-size:12px;vertical-align:middle;">info</i> 
+      Set to 0 to disable auto-remove. Key will be deleted if not activated within this time.
+    </p>
+
+    <div class="form-group">
+      <label><i class="material-icons">person</i> LICENSE LABEL / CUSTOMER</label>
+      <input id="premLabel" placeholder="Optional customer name or email">
+    </div>
+
+    <div class="form-group">
+      <label><i class="material-icons">notes</i> NOTES (Optional)</label>
+      <input id="premNotes" placeholder="Additional notes about this license">
+    </div>
+
+    <button class="btn blue full" id="btnAddPrem">
+      <i class="material-icons">add</i> CREATE PREMIUM LICENSE
+    </button>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="card hidden" id="toolsPage">
+
+    <div class="card-title">
+      <h2><i class="material-icons">build</i> DATABASE TOOLS</h2>
+    </div>
+
+    <div class="section-header"><i class="material-icons">import_export</i> EXPORT</div>
+    
+    <button class="btn gray full" id="btnExport">
+      <i class="material-icons">file_download</i> EXPORT JSON
+    </button>
+
+    <button class="btn gray full" id="btnExportCSV">
+      <i class="material-icons">table_chart</i> EXPORT CSV
+    </button>
+
+    <div class="section-header"><i class="material-icons">tune</i> BULK OPERATIONS</div>
+    
+    <button class="btn red full" id="btnDisableAll">
+      <i class="material-icons">do_not_disturb</i> DISABLE ALL ACTIVE KEYS
+    </button>
+
+    <button class="btn full" id="btnEnableAll">
+      <i class="material-icons">check_circle</i> ENABLE ALL KEYS
+    </button>
+
+    <button class="btn orange full" id="btnCleanup">
+      <i class="material-icons">delete_sweep</i> REMOVE EXPIRED & UNIMPORTED
+    </button>
+
+    <div class="section-header"><i class="material-icons">refresh</i> SYNC</div>
+    
+    <button class="btn gray full" id="btnRefreshTools">
+      <i class="material-icons">refresh</i> RELOAD DATABASE
+    </button>
+
+    <button class="btn purple full" id="btnSyncLocal">
+      <i class="material-icons">sync</i> SYNC WITH LOCAL BACKUP
+    </button>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="card hidden" id="settingsPage">
+    <div class="card-title">
+      <h2><i class="material-icons">settings</i> SETTINGS</h2>
+    </div>
+
+    <div class="section-header"><i class="material-icons">auto_delete</i> AUTO-CLEANUP</div>
+    
+    <div class="form-group">
+      <label><i class="material-icons">schedule</i> AUTO-REMOVE UNIMPORTED KEYS AFTER</label>
+      <div class="form-row">
+        <input id="autoRemoveValue" type="number" min="0" value="72">
+        <select id="autoRemoveUnit">
+          <option value="hours">Hours</option>
+          <option value="days">Days</option>
+        </select>
+      </div>
+      <p style="font-size:10px;color:var(--muted);margin-top:4px;">
+        <i class="material-icons" style="font-size:12px;vertical-align:middle;">info</i> 
+        Set to 0 to disable automatic removal. This applies to new keys without explicit deadline.
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label><i class="material-icons">alarm</i> AUTO-DISABLE EXPIRED KEYS</label>
+      <select id="globalAutoDisable">
+        <option value="yes">Yes, auto-disable all keys when expired</option>
+        <option value="no" selected>No, use per-key settings</option>
+      </select>
+      <p style="font-size:10px;color:var(--muted);margin-top:4px;">
+        <i class="material-icons" style="font-size:12px;vertical-align:middle;">info</i> 
+        Override per-key auto-disable settings. If enabled, ALL keys will auto-disable on expiry.
+      </p>
+    </div>
+
+    <div class="section-header"><i class="material-icons">notifications</i> NOTIFICATIONS</div>
+    
+    <div class="form-group">
+      <label><i class="material-icons">alarm</i> EXPIRY WARNING DAYS</label>
+      <input id="expiryWarningDays" type="number" min="0" value="7">
+      <p style="font-size:10px;color:var(--muted);margin-top:4px;">
+        <i class="material-icons" style="font-size:12px;vertical-align:middle;">info</i> 
+        Show warning for keys expiring within this many days.
+      </p>
+    </div>
+
+    <div class="section-header"><i class="material-icons">refresh</i> AUTO-REFRESH</div>
+    
+    <div class="form-group">
+      <label><i class="material-icons">schedule</i> REFRESH INTERVAL (seconds)</label>
+      <input id="refreshInterval" type="number" min="10" value="30">
+      <p style="font-size:10px;color:var(--muted);margin-top:4px;">
+        <i class="material-icons" style="font-size:12px;vertical-align:middle;">info</i> 
+        How often to refresh countdowns and check for expired keys (minimum 10 seconds).
+      </p>
+    </div>
+
+    <button class="btn full" id="btnSaveSettings">
+      <i class="material-icons">save</i> SAVE SETTINGS
+    </button>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-text" id="modalText"></div>
+    <div id="modalInputArea"></div>
+    <div class="modal-actions">
+      <button class="btn gray" id="modalCancel"><i class="material-icons">close</i> CANCEL</button>
+      <button class="btn" id="modalConfirm"><i class="material-icons">check</i> CONFIRM</button>
+    </div>
+  </div>
+</div>
+
+<!-- Device Popup -->
+<div id="devicePopup" class="device-popup hidden">
+  <button class="close" onclick="closeDevicePopup()">&times;</button>
+  <h4><i class="material-icons">devices</i> ACTIVE DEVICES</h4>
+  <div id="devicePopupContent"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const CFG_KEYS = [
+  "cfgToken",
+  "cfgOwner",
+  "cfgRepo",
+  "cfgFile",
+  "cfgBranch",
+  "autoRemoveValue",
+  "autoRemoveUnit",
+  "expiryWarningDays",
+  "globalAutoDisable",
+  "refreshInterval"
+];
+
+// Load saved config
+CFG_KEYS.forEach(function(id){
+  const value = localStorage.getItem("sk_" + id);
+  if(value && $(id)){
+    $(id).value = value;
+  }
+});
+
+// Save config on change
+CFG_KEYS.forEach(function(id){
+  const el = $(id);
+  if(el){
+    el.addEventListener("input",function(){
+      localStorage.setItem("sk_" + id, el.value);
+    });
+  }
+});
+
+function $(id){
+  return document.getElementById(id);
+}
+
+function cfg(){
+  return {
+    token: $("cfgToken").value.trim(),
+    owner: $("cfgOwner").value.trim(),
+    repo: $("cfgRepo").value.trim(),
+    file: $("cfgFile").value.trim(),
+    branch: $("cfgBranch").value.trim() || "main"
+  };
+}
+
+function apiUrl(c){
+  return "https://codeberg.org/api/v1/repos/" +
+    encodeURIComponent(c.owner) + "/" +
+    encodeURIComponent(c.repo) +
+    "/contents/" +
+    c.file;
+}
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+
+function getSettings(){
+  return {
+    autoRemoveValue: parseInt($("autoRemoveValue").value, 10) || 72,
+    autoRemoveUnit: $("autoRemoveUnit").value || "hours",
+    expiryWarningDays: parseInt($("expiryWarningDays").value, 10) || 7,
+    globalAutoDisable: $("globalAutoDisable").value || "no",
+    refreshInterval: Math.max(10, parseInt($("refreshInterval").value, 10) || 30) * 1000
+  };
+}
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let DB = {
+  keys: []
+};
+
+let FILE_SHA = null;
+let connected = false;
+let autoCleanupInterval = null;
+let autoDisableInterval = null;
+let countdownInterval = null;
+let refreshInterval = null;
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function toast(message,error,icon){
+  const t = $("toast");
+  t.innerHTML = (icon ? '<i class="material-icons">' + icon + '</i>' : '') + message;
+  t.className = error ? "err" : "";
+  t.style.display = "flex";
+
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){
+    t.style.display = "none";
+  },3500);
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+let modalResolve = null;
+
+function modal(title,text,input,icon){
+  return new Promise(function(resolve){
+    modalResolve = resolve;
+
+    $("modalTitle").innerHTML = (icon ? '<i class="material-icons">' + icon + '</i>' : '') + title;
+    $("modalText").textContent = text;
+    $("modalInputArea").innerHTML = input || "";
+    $("modal").classList.remove("hidden");
+  });
+}
+
+function closeModal(value){
+  $("modal").classList.add("hidden");
+  if(modalResolve){
+    modalResolve(value);
+    modalResolve = null;
+  }
+}
+
+$("modalCancel").onclick = function(){
+  closeModal(false);
+};
+
+$("modalConfirm").onclick = function(){
+  closeModal(true);
+};
+
+// Close modal on backdrop click
+document.getElementById("modal").addEventListener("click", function(e){
+  if(e.target === this){
+    closeModal(false);
+  }
+});
+
+/* =========================================================
+   DEVICE POPUP
+========================================================= */
+
+function showDevicePopup(key, devices, maxDevices){
+  const popup = $("devicePopup");
+  const content = $("devicePopupContent");
+  
+  if(!devices || !devices.length){
+    content.innerHTML = '<p style="color:var(--muted);font-size:11px;text-align:center;">No devices imported this key yet</p>';
+  }else{
+    let html = '<p style="color:var(--muted);font-size:10px;margin-bottom:10px;">' +
+      '<i class="material-icons" style="font-size:12px;vertical-align:middle;">info</i> ' +
+      devices.length + '/' + maxDevices + ' devices imported' +
+      (devices.length >= maxDevices ? ' <strong style="color:var(--red);">[LIMIT REACHED]</strong>' : '') +
+      '</p>';
+    
+    devices.forEach(function(d, index){
+      const importTime = d.import_time ? dateTime(d.import_time) : (d.imported_at ? dateTime(d.imported_at) : 'Unknown');
+      const deviceHash = d.id || d.hash || 'unknown';
+      const shortHash = deviceHash.substring(0, 12) + '...';
+      
+      html += '<div class="device-entry">' +
+        '<div style="margin-bottom:6px;">' +
+          '<span><i class="material-icons">smartphone</i> ' + esc(d.name || 'Device ' + (index + 1)) + '</span>' +
+          (d.ip ? '<span style="margin-left:8px;"><i class="material-icons" style="font-size:12px;">language</i> ' + esc(d.ip) + '</span>' : '') +
+        '</div>' +
+        '<div style="font-size:9px;color:var(--cyan);font-family:monospace;margin-bottom:4px;word-break:break-all;">' +
+          'Hash: ' + shortHash + '</div>' +
+        '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">' +
+          '<i class="material-icons" style="font-size:12px;vertical-align:middle;">schedule</i> ' +
+          'Imported: ' + importTime +
+        '</div>' +
+        (d.first_used ? '<div style="font-size:9px;color:var(--muted);">First used: ' + esc(dateTime(d.first_used)) + '</div>' : '') +
+        (d.last_used ? '<div style="font-size:9px;color:var(--muted);">Last used: ' + esc(dateTime(d.last_used)) + '</div>' : '') +
+        '<button class="btn btn.red small" style="margin-top:6px;width:100%;" onclick="removeDeviceFromKey(\'' + esc(key) + '\', \'' + esc(deviceHash.replace(/'/g, "\\'")) + '\');">' +
+          '<i class="material-icons" style="font-size:12px;">delete</i> Remove Device' +
+        '</button>' +
+        '</div>';
+    });
+    
+    content.innerHTML = html;
+  }
+  
+  popup.classList.remove("hidden");
+  
+  // Position popup near the clicked element
+  const trigger = event.target.closest('.device-badge');
+  if(trigger){
+    const rect = trigger.getBoundingClientRect();
+    popup.style.position = 'fixed';
+    popup.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+    popup.style.left = (rect.left + window.scrollX) + 'px';
+  }
+}
+
+function removeDeviceFromKey(key, deviceHash){
+  if(!confirm('Remove this device from the license?')) return;
+  
+  try{
+    const keyObj = DB.keys.find(k => k.key === key);
+    if(!keyObj) {
+      toast('Key not found', true, 'error');
+      return;
+    }
+    
+    const beforeCount = (keyObj.devices || []).length;
+    keyObj.devices = (keyObj.devices || []).filter(d => (d.id || d.hash) !== deviceHash);
+    const afterCount = keyObj.devices.length;
+    
+    if(beforeCount === afterCount){
+      toast('Device not found', true, 'error');
+      return;
+    }
+    
+    mutateDatabase(function(db){
+      const k = db.keys.find(x => x.key === key);
+      if(k) k.devices = keyObj.devices;
+    }, 'removed device from key: ' + key);
+    
+    toast('Device removed ✓', false, 'delete');
+    
+    // Refresh the popup
+    setTimeout(function(){
+      showDevicePopup(event, keyObj.devices, keyObj.max_devices || 1);
+    }, 300);
+    
+  }catch(error){
+    toast('Error removing device: ' + error.message, true, 'error');
+  }
+}
+
+function closeDevicePopup(){
+  $("devicePopup").classList.add("hidden");
+}
+
+// Close popup when clicking outside
+document.addEventListener('click', function(e){
+  const popup = $("devicePopup");
+  if(!popup.contains(e.target) && !e.target.closest('.device-badge')){
+    popup.classList.add("hidden");
+  }
+});
+
+/* =========================================================
+   TABS
+========================================================= */
+
+document.querySelectorAll(".tab").forEach(function(tab){
+  tab.onclick = function(){
+    document.querySelectorAll(".tab").forEach(function(t){
+      t.classList.remove("on");
+    });
+    tab.classList.add("on");
+    [
+      "keysPage",
+      "trialPage",
+      "premiumPage",
+      "toolsPage",
+      "settingsPage"
+    ].forEach(function(page){
+      $(page).classList.add("hidden");
+    });
+    $(tab.dataset.page).classList.remove("hidden");
+  };
+});
+
+/* =========================================================
+   KEY GENERATION
+========================================================= */
+
+const CH = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+function randomGroup(length){
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  let result = "";
+  for(let i=0;i<length;i++){
+    result += CH[bytes[i] % CH.length];
+  }
+  return result;
+}
+
+function generateKey(trial){
+  let key;
+  if(trial){
+    key = "TRIAL-" + randomGroup(4) + "-" + randomGroup(4);
+    $("trialKey").textContent = key;
+  }else{
+    key = "PREM-" + randomGroup(4) + "-" + randomGroup(4) + "-" + randomGroup(4);
+    $("premKey").textContent = key;
+  }
+}
+
+generateKey(true);
+generateKey(false);
+
+/* =========================================================
+   BASE64 UTF-8
+========================================================= */
+
+function b64e(str){
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
+function b64d(str){
+  return decodeURIComponent(escape(atob(str.replace(/\s/g,""))));
+}
+
+/* =========================================================
+   CODEBERG API
+========================================================= */
+
+async function readFile(){
+  const c = cfg();
+  if(!c.token){
+    throw new Error("Missing Codeberg API token");
+  }
+
+  const response = await fetch(
+    apiUrl(c) + "?ref=" + encodeURIComponent(c.branch),
+    {
+      headers:{
+        "Authorization":"token " + c.token,
+        "Accept":"application/json"
+      }
+    }
+  );
+
+  if(!response.ok){
+    throw new Error("Read failed — HTTP " + response.status);
+  }
+
+  const meta = await response.json();
+  let json;
+
+  try{
+    json = JSON.parse(b64d(meta.content));
+  }catch(e){
+    throw new Error("keys.json contains invalid JSON");
+  }
+
+  return {
+    sha:meta.sha,
+    json:json
+  };
+}
+
+async function writeFile(sha,json,message){
+  const c = cfg();
+  const response = await fetch(
+    apiUrl(c),
+    {
+      method:"PUT",
+      headers:{
+        "Authorization":"token " + c.token,
+        "Content-Type":"application/json",
+        "Accept":"application/json"
+      },
+      body:JSON.stringify({
+        message:message,
+        content:b64e(JSON.stringify(json,null,2)),
+        sha:sha,
+        branch:c.branch
+      })
+    }
+  );
+
+  if(!response.ok){
+    let detail = "";
+    try{detail = await response.text();}catch(e){}
+    throw new Error("Write failed — HTTP " + response.status + (detail ? " " + detail.slice(0,150) : ""));
+  }
+
+  return response.json();
+}
+
+/* =========================================================
+   CONNECTION
+========================================================= */
+
+async function connect(){
+  const btn = $("btnConnect");
+  btn.disabled = true;
+  btn.innerHTML = '<i class="material-icons">hourglass_empty</i> CONNECTING...';
+
+  try{
+    const result = await readFile();
+    FILE_SHA = result.sha;
+    DB = result.json || {};
+    DB.keys = Array.isArray(DB.keys) ? DB.keys : [];
+    connected = true;
+    
+    $("connectionStatus").innerHTML = '<i class="material-icons">cloud_done</i> CONNECTED';
+    $("connectionStatus").classList.add("online");
+    
+    render();
+    startAutoSystems();
+    
+    toast("Connected — " + DB.keys.length + " licenses loaded", false, "check_circle");
+    
+  }catch(error){
+    connected = false;
+    $("connectionStatus").innerHTML = '<i class="material-icons">cloud_off</i> OFFLINE';
+    $("connectionStatus").classList.remove("online");
+    toast(error.message, true, "error");
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="material-icons">cloud_download</i> CONNECT & LOAD';
+}
+
+$("btnConnect").onclick = connect;
+
+/* =========================================================
+   REFRESH
+========================================================= */
+
+async function refresh(){
+  if(!connected && !cfg().token){
+    toast("Configure Codeberg connection first", true, "error");
+    return;
+  }
+
+  const btn = $("btnRefresh");
+  btn.disabled = true;
+
+  try{
+    const result = await readFile();
+    FILE_SHA = result.sha;
+    DB = result.json || {};
+    DB.keys = Array.isArray(DB.keys) ? DB.keys : [];
+    connected = true;
+    
+    $("connectionStatus").innerHTML = '<i class="material-icons">cloud_done</i> CONNECTED';
+    $("connectionStatus").classList.add("online");
+    
+    render();
+    toast("Database refreshed", false, "refresh");
+    
+  }catch(error){
+    toast(error.message, true, "error");
+  }
+
+  btn.disabled = false;
+}
+
+$("btnRefresh").onclick = refresh;
+$("btnRefreshTools").onclick = refresh;
+
+/* =========================================================
+   DATE & TIME HELPERS
+========================================================= */
+
+function isoNow(){
+  return new Date().toISOString();
+}
+
+function dateOnly(date){
+  if(!date) return "";
+  const d = new Date(date);
+  if(isNaN(d.getTime())) return "";
+  return d.getFullYear() + "-" + 
+    String(d.getMonth()+1).padStart(2,"0") + "-" +
+    String(d.getDate()).padStart(2,"0");
+}
+
+function dateTime(date){
+  if(!date) return "";
+  const d = new Date(date);
+  if(isNaN(d.getTime())) return "";
+  return dateOnly(date) + " " + 
+    String(d.getHours()).padStart(2,"0") + ":" +
+    String(d.getMinutes()).padStart(2,"0");
+}
+
+function isImported(k){
+  if(!k) return false;
+  if(k.activated_at) return true;
+  return Array.isArray(k.devices) && k.devices.length > 0;
+}
+
+function isExpired(k){
+  if(!k) return true;
+  // countdown starts when the key is imported in the APK — an unimported
+  // key is never "expired" (only subject to its import deadline)
+  if(!isImported(k)) return false;
+
+  if(k.expires_at){
+    return Date.now() >= new Date(k.expires_at).getTime();
+  }
+  if(k.expiry){
+    return new Date(k.expiry + "T23:59:59").getTime() < Date.now();
+  }
+  return false;
+}
+
+function isUnimported(k){
+  if(!k) return false;
+  return !isImported(k);
+}
+
+function isDeadlineMissed(k){
+  if(!k || !k.import_deadline) return false;
+  return Date.now() >= new Date(k.import_deadline).getTime() && !isImported(k);
+}
+
+function getTimeUntilExpiry(k){
+  if(isExpired(k)) return { value: 0, unit: "expired" };
+
+  // not imported yet: timed key waits for its first import in the APK
+  if(!isImported(k)){
+    if(k.minutes || k.days || k.expiry || k.expires_at){
+      return { value: null, unit: "pending" };
+    }
+    return { value: null, unit: "lifetime" };
+  }
+
+  let expiryDate;
+  if(k.expires_at){
+    expiryDate = new Date(k.expires_at);
+  }else if(k.expiry){
+    expiryDate = new Date(k.expiry + "T23:59:59");
+  }else{
+    return { value: null, unit: "lifetime" };
+  }
+  
+  const now = Date.now();
+  const diff = expiryDate.getTime() - now;
+  
+  if(diff <= 0) return { value: 0, unit: "expired" };
+  
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  
+  if(days > 0) return { value: days, unit: "days" };
+  if(hours > 0) return { value: hours, unit: "hours" };
+  if(minutes > 0) return { value: minutes, unit: "minutes" };
+  return { value: seconds, unit: "seconds" };
+}
+
+function getTimeUntilImportDeadline(k){
+  if(!k.import_deadline) return null;
+  if(isImported(k)) return null;
+  
+  const deadline = new Date(k.import_deadline);
+  const now = Date.now();
+  const diff = deadline.getTime() - now;
+  
+  if(diff <= 0) return { value: 0, unit: "expired" };
+  
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  
+  if(days > 0) return { value: days, unit: "days" };
+  if(hours > 0) return { value: hours, unit: "hours" };
+  if(minutes > 0) return { value: minutes, unit: "minutes" };
+  return { value: seconds, unit: "seconds" };
+}
+
+function durationText(k){
+  if(k.minutes){
+    const m = parseInt(k.minutes, 10) || 0;
+    if(m % 1440 === 0) return (m / 1440) + "d";
+    if(m % 60 === 0) return (m / 60) + "h";
+    return m + "m";
+  }
+  if(k.days) return k.days + "d";
+  return "";
+}
+
+function formatLiveCountdown(seconds, warningThreshold, forImport){
+  if(seconds === null) return '<span class="live-countdown lifetime"><i class="material-icons">infinity</i> Lifetime</span>';
+  if(seconds <= 0) return '<span class="live-countdown expired"><i class="material-icons">do_not_disturb</i> ' + (forImport ? 'Not imported' : 'Expired') + '</span>';
+  
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  
+  let className = "live-countdown";
+  let timeStr = "";
+  
+  if(days > 0){
+    timeStr = days + "d " + String(hours).padStart(2,"0") + "h " + String(minutes).padStart(2,"0") + "m";
+    if(days <= warningThreshold) className += " warning";
+  }else if(hours > 0){
+    timeStr = String(hours).padStart(2,"0") + "h " + String(minutes).padStart(2,"0") + "m " + String(secs).padStart(2,"0") + "s";
+    if(hours <= warningThreshold * 24) className += " warning";
+  }else if(minutes > 0){
+    timeStr = String(minutes).padStart(2,"0") + "m " + String(secs).padStart(2,"0") + "s";
+    if(minutes <= warningThreshold * 24 * 60) className += " warning";
+  }else{
+    timeStr = String(secs).padStart(2,"0") + "s";
+  }
+  
+  const icon = forImport ? 'alarm' : (days > 0 ? 'calendar_today' : 'timer');
+  
+  return '<span class="' + className + '"><i class="material-icons">' + icon + '</i> ' + timeStr + '</span>';
+}
+
+/* =========================================================
+   NORMALIZE LICENSE
+========================================================= */
+
+function normalizeKey(k){
+  if(!k) return {};
+
+  if(!Array.isArray(k.devices)) k.devices = [];
+  if(typeof k.max_devices !== "number") k.max_devices = 1;
+  if(typeof k.active !== "boolean") k.active = true;
+  
+  if(!k.type){
+    k.type = (k.minutes || k.expires_at) ? "trial" : "premium";
+  }
+  
+  // Ensure auto_disable is set
+  if(typeof k.auto_disable !== "boolean"){
+    k.auto_disable = false;
+  }
+  
+  // Ensure devices have proper structure
+  k.devices = k.devices.map(d => {
+    if(typeof d === "string") return { id: d, name: d, first_used: "", last_used: "" };
+    return {
+      id: d.id || "",
+      name: d.name || d.id || "",
+      ip: d.ip || "",
+      user_agent: d.user_agent || "",
+      first_used: d.first_used || "",
+      last_used: d.last_used || ""
+    };
+  });
+  
+  return k;
+}
+
+/* =========================================================
+   UPDATE STATS
+========================================================= */
+
+function updateStats(){
+  const keys = DB.keys || [];
+  const settings = getSettings();
+  
+  let active = 0;
+  let trial = 0;
+  let premium = 0;
+  let expired = 0;
+  let unimported = 0;
+  let totalDevices = 0;
+
+  keys.forEach(function(k){
+    normalizeKey(k);
+    
+    if(k.active && !isExpired(k)) active++;
+    if(k.type === "trial") trial++;
+    else premium++;
+    if(isExpired(k)) expired++;
+    if(isUnimported(k)) unimported++;
+    totalDevices += (k.devices || []).length;
+  });
+
+  $("statTotal").innerHTML = '<i class="material-icons">tag</i> ' + keys.length;
+  $("statActive").innerHTML = '<i class="material-icons">check_circle</i> ' + active;
+  $("statTrial").innerHTML = '<i class="material-icons">timer</i> ' + trial;
+  $("statPremium").innerHTML = '<i class="material-icons">star</i> ' + premium;
+  $("statExpired").innerHTML = '<i class="material-icons">do_not_disturb</i> ' + expired;
+  $("statUnimported").innerHTML = '<i class="material-icons">warning</i> ' + unimported;
+  $("kCount").textContent = "(" + keys.length + " licenses, " + totalDevices + " devices)";
+}
+
+/* =========================================================
+   ESCAPE
+========================================================= */
+
+function esc(value){
+  return String(value == null ? "" : value)
+    .replace(/[&<>"]/g,function(m){
+      return {
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;"
+      }[m];
+    });
+}
+
+/* =========================================================
+   FILTER & SORT
+========================================================= */
+
+function getFilteredKeys(){
+  const search = $("searchBox").value.trim().toLowerCase();
+  const filter = $("filterType").value;
+  const sortBy = $("sortBy").value;
+
+  let keys = DB.keys.filter(function(k){
+    normalizeKey(k);
+    const expired = isExpired(k);
+    const unimported = isUnimported(k);
+
+    let matchesFilter = true;
+
+    switch(filter){
+      case "active": matchesFilter = k.active && !expired; break;
+      case "inactive": matchesFilter = !k.active; break;
+      case "trial": matchesFilter = k.type === "trial"; break;
+      case "premium": matchesFilter = k.type === "premium"; break;
+      case "expired": matchesFilter = expired; break;
+      case "lifetime": matchesFilter = k.type === "premium" && !k.expiry && !k.expires_at && !k.days; break;
+      case "unimported": matchesFilter = unimported; break;
+    }
+
+    if(!matchesFilter) return false;
+    if(!search) return true;
+
+    const haystack = [
+      k.key,
+      k.type,
+      k.label,
+      k.created_at,
+      k.activated_at,
+      k.notes,
+      ...(k.devices || []).map(d => d.name + " " + d.ip)
+    ].join(" ").toLowerCase();
+
+    return haystack.includes(search);
+  });
+
+  // Sort
+  keys.sort(function(a,b){
+    normalizeKey(a);
+    normalizeKey(b);
+    
+    switch(sortBy){
+      case "key":
+        return a.key.localeCompare(b.key);
+      case "created":
+        return (b.created_at || "").localeCompare(a.created_at || "");
+      case "expiry":
+        const aExpiry = a.expires_at || a.expiry || "9999-12-31";
+        const bExpiry = b.expires_at || b.expiry || "9999-12-31";
+        return new Date(aExpiry) - new Date(bExpiry);
+      case "label":
+        return (a.label || "").localeCompare(b.label || "");
+      default:
+        return 0;
+    }
+  });
+
+  return keys;
+}
+
+/* =========================================================
+   LICENSE DISPLAY
+========================================================= */
+
+function getDeviceBadge(k, maxDevices){
+  const devices = k.devices || [];
+  const count = devices.length;
+  const percentage = maxDevices > 0 ? Math.round((count / maxDevices) * 100) : 0;
+  
+  let className = "device-badge ";
+  let icon = "devices_other";
+  let statusText = "";
+  
+  if(count >= maxDevices){
+    className += "full";
+    icon = "do_not_disturb";
+    statusText = "MAX REACHED";
+  }else if(percentage > 75){
+    className += "warning";
+    icon = "warning";
+    statusText = percentage + "% used";
+  }else{
+    className += "success";
+    icon = "check_circle";
+    statusText = percentage + "% used";
+  }
+  
+  const badge = '<span class="' + className + '" onclick="showDevicePopup(event, ' + 
+    JSON.stringify(k.devices).replace(/"/g, '&quot;') + ', ' + maxDevices + ')" ' +
+    'data-tooltip="Click to view devices">' +
+    '<i class="material-icons">' + icon + '</i> ' +
+    count + '/' + maxDevices + ' devices' +
+    (statusText ? ' <small>(' + statusText + ')</small>' : '') +
+    '</span>';
+  
+  return badge;
+}
+
+function renderKeyItem(k){
+  const expired = isExpired(k);
+  const unimported = isUnimported(k);
+  const settings = getSettings();
+
+  const typeClass = k.type === "trial" ? "trial" : (!k.expiry && !k.expires_at && !k.days ? "life" : "premium");
+  const typeText = k.type === "trial" ? "TRIAL" : (!k.expiry && !k.expires_at && !k.days ? "LIFETIME" : "PREMIUM");
+  const active = k.active && !expired;
+  const maxDevices = k.max_devices || 1;
+
+  let itemClass = "key-item";
+  if(expired) itemClass += " expired";
+  if(unimported) itemClass += " unimported";
+  if(k.auto_disabled) itemClass += " auto-disabled";
+
+  // Countdowns
+  const importDeadline = getTimeUntilImportDeadline(k);
+  const expiryCountdown = getTimeUntilExpiry(k);
+
+  // Calculate seconds for live countdown
+  let expirySeconds = null;
+  if(expiryCountdown.value !== null && !expired){
+    if(expiryCountdown.unit === "days") expirySeconds = expiryCountdown.value * 86400;
+    else if(expiryCountdown.unit === "hours") expirySeconds = expiryCountdown.value * 3600;
+    else if(expiryCountdown.unit === "minutes") expirySeconds = expiryCountdown.value * 60;
+    else if(expiryCountdown.unit === "seconds") expirySeconds = expiryCountdown.value;
+  }
+
+  // Check if auto-disabled
+  const isAutoDisabled = k.auto_disabled || (k.auto_disable && expired && k.activated_at);
+
+  let html = '<div class="key-top">' +
+    '<div class="key-value mono">' + esc(k.key) + '</div>' +
+    '<div class="badges">' +
+      '<span class="badge ' + (active && !isAutoDisabled ? "on" : "off") + '">' +
+        '<i class="material-icons">' + (active && !isAutoDisabled ? 'check_circle' : 'do_not_disturb') + '</i>' +
+        (active && !isAutoDisabled ? "ACTIVE" : (isAutoDisabled ? "AUTO-DISABLED" : "DISABLED")) +
+      '</span>' +
+      '<span class="badge ' + typeClass + '">' +
+        '<i class="material-icons">' + (k.type === "trial" ? 'timer' : (typeClass === "life" ? 'infinity' : 'star')) + '</i>' +
+        typeText +
+      '</span>';
+
+  if(expired){
+    html += '<span class="badge expired"><i class="material-icons">do_not_disturb</i> EXPIRED</span>';
+  }
+  
+  if(unimported){
+    html += '<span class="badge unimported"><i class="material-icons">warning</i> UNIMPORTED</span>';
+  }
+  
+  if(isAutoDisabled){
+    html += '<span class="badge auto-disabled"><i class="material-icons">auto_delete</i> AUTO-DISABLED</span>';
+  }
+  
+  html += '</div>' +
+    '<div class="key-meta">' +
+      (expiryCountdown.unit === "pending"
+        ? '<span class="live-countdown warning"><i class="material-icons">alarm</i> ' + esc(durationText(k)) + ' — STARTS ON IMPORT</span>'
+        : (expirySeconds !== null ? formatLiveCountdown(expirySeconds, settings.expiryWarningDays, false) :
+        '<span class="live-countdown lifetime"><i class="material-icons">infinity</i> Lifetime</span>')) +
+      getDeviceBadge(k, maxDevices) +
+      (k.label ? '<span><i class="material-icons">person</i> USER: ' + esc(k.label) + '</span>' : '') +
+      (k.created_at ? '<span><i class="material-icons">calendar_today</i> CREATED ' + esc(dateTime(k.created_at)) + '</span>' : '') +
+      (k.activated_at ? '<span><i class="material-icons">play_circle</i> ACTIVATED ' + esc(dateTime(k.activated_at)) + '</span>' : '') +
+      (importDeadline ? '<span class="tooltip" data-tooltip="Key will be auto-removed if not activated within this time"><i class="material-icons">alarm</i> DEADLINE: ' + formatLiveCountdown(importDeadline.value * (importDeadline.unit === "days" ? 86400 : importDeadline.unit === "hours" ? 3600 : 60), 0, true) + '</span>' : '') +
+      (k.notes ? '<span class="tooltip" data-tooltip="' + esc(k.notes) + '"><i class="material-icons">notes</i> Has notes</span>' : '') +
+    '</div>' +
+    '<div class="key-actions">' +
+      '<button class="btn small gray" data-action="copy" title="Copy key"><i class="material-icons">content_copy</i> COPY</button>' +
+      '<button class="btn small ' + (active && !isAutoDisabled ? "red" : "") + '" data-action="toggle" title="' + (active && !isAutoDisabled ? 'Revoke' : 'Activate') + ' license"><i class="material-icons">' + (active && !isAutoDisabled ? 'do_not_disturb' : 'check_circle') + '</i> ' + (active && !isAutoDisabled ? "REVOKE" : "ACTIVATE") + '</button>' +
+      '<button class="btn small gray" data-action="devices" title="Reset devices"><i class="material-icons">devices</i> RESET</button>';
+
+  if(k.type === "premium" && (k.expiry || k.expires_at || k.days)){
+    html += '<button class="btn small blue" data-action="extend" title="Extend license"><i class="material-icons">calendar_month</i> EXTEND</button>';
+  }
+
+  if(k.type === "trial" && !k.activated_at && !k.import_deadline){
+    html += '<button class="btn small orange" data-action="setDeadline" title="Set import deadline"><i class="material-icons">alarm_add</i> SET DEADLINE</button>';
+  }
+
+  html += '<button class="btn small red" data-action="delete" title="Delete license"><i class="material-icons">delete</i> DELETE</button>' +
+    '</div>';
+
+  return html;
+}
+
+function render(){
+  updateStats();
+  const list = $("keyList");
+  const keys = getFilteredKeys();
+
+  if(!keys.length){
+    list.innerHTML = '<div class="empty"><i class="material-icons">search_off</i> No licenses found.</div>';
+    return;
+  }
+
+  list.innerHTML = "";
+  keys.forEach(function(k){
+    const item = document.createElement("div");
+    item.className = "key-item";
+    item.innerHTML = renderKeyItem(k);
+
+    item.querySelector('[data-action="copy"]').onclick = function(){
+      copyKey(k.key);
+    };
+
+    item.querySelector('[data-action="toggle"]').onclick = function(){
+      toggleKey(k);
+    };
+
+    item.querySelector('[data-action="devices"]').onclick = function(){
+      resetDevices(k);
+    };
+
+    const extend = item.querySelector('[data-action="extend"]');
+    if(extend){
+      extend.onclick = function(){
+        extendKey(k);
+      };
+    }
+
+    const setDeadline = item.querySelector('[data-action="setDeadline"]');
+    if(setDeadline){
+      setDeadline.onclick = function(){
+        setImportDeadline(k);
+      };
+    }
+
+    item.querySelector('[data-action="delete"]').onclick = function(){
+      deleteKey(k);
+    };
+
+    list.appendChild(item);
+  });
+}
+
+/* =========================================================
+   SEARCH & FILTER
+========================================================= */
+
+$("searchBox").addEventListener("input", render);
+$("filterType").addEventListener("change", render);
+$("sortBy").addEventListener("change", render);
+
+/* =========================================================
+   COPY
+========================================================= */
+
+async function copyKey(key){
+  try{
+    await navigator.clipboard.writeText(key);
+    toast("Copied: " + key, false, "content_copy");
+  }catch(e){
+    // Fallback for older browsers
+    const textarea = document.createElement("textarea");
+    textarea.value = key;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+    toast("Copied: " + key, false, "content_copy");
+  }
+}
+
+/* =========================================================
+   DATABASE WRITE
+========================================================= */
+
+async function saveDatabase(message){
+  if(!connected) throw new Error("Not connected");
+  const current = await readFile();
+  FILE_SHA = current.sha;
+  DB = current.json || {};
+  DB.keys = Array.isArray(DB.keys) ? DB.keys : [];
+  return writeFile(FILE_SHA, DB, message);
+}
+
+async function mutateDatabase(callback, message){
+  const fresh = await readFile();
+  FILE_SHA = fresh.sha;
+  DB = fresh.json || {};
+  DB.keys = Array.isArray(DB.keys) ? DB.keys : [];
+  const result = await callback(DB);
+  await writeFile(FILE_SHA, DB, message);
+  render();
+  return result;
+}
+
+/* =========================================================
+   CREATE TRIAL
+========================================================= */
+
+async function addTrial(){
+  const key = $("trialKey").textContent.trim();
+  let value = parseInt($("trialValue").value, 10) || 10;
+  const unit = $("trialUnit").value;
+  let maxDevices = parseInt($("trialDevices").value, 10) || 1;
+  const label = $("trialLabel").value.trim();
+  const notes = $("trialNotes").value.trim();
+  const autoDisable = $("trialAutoDisable").value === "yes";
+  
+  // Import deadline
+  let deadlineValue = parseInt($("trialDeadlineValue").value, 10) || 0;
+  const deadlineUnit = $("trialDeadlineUnit").value;
+
+  maxDevices = Math.max(1, Math.min(100, maxDevices));
+  value = Math.max(1, value);
+
+  const btn = $("btnAddTrial");
+  btn.disabled = true;
+  btn.innerHTML = '<i class="material-icons">hourglass_empty</i> CREATING...';
+
+  try{
+    await mutateDatabase(function(db){
+      if(db.keys.some(function(k){ return k.key === key; })){
+        throw new Error("Duplicate license key");
+      }
+
+      // Countdown starts on IMPORT in the APK — only the duration is stored
+      // here; the app stamps activated_at + expires_at on first import.
+      const totalMinutes = unit === "minutes" ? value : (unit === "hours" ? value * 60 : value * 60 * 24);
+
+      // Calculate import deadline
+      let importDeadline = null;
+      if(deadlineValue > 0){
+        const deadlineDate = new Date();
+        switch(deadlineUnit){
+          case "hours": deadlineDate.setHours(deadlineDate.getHours() + deadlineValue); break;
+          case "days": deadlineDate.setDate(deadlineDate.getDate() + deadlineValue); break;
+          case "weeks": deadlineDate.setDate(deadlineDate.getDate() + (deadlineValue * 7)); break;
+        }
+        importDeadline = deadlineDate.toISOString();
+      }
+
+      db.keys.push({
+        key: key,
+        type: "trial",
+        minutes: totalMinutes,
+        expires_at: "",
+        active: true,
+        activated_at: "",
+        created_at: isoNow(),
+        max_devices: maxDevices,
+        devices: [],
+        label: label,
+        notes: notes,
+        import_deadline: importDeadline,
+        import_deadline_unit: deadlineUnit,
+        import_deadline_value: deadlineValue,
+        auto_disable: autoDisable
+      });
+    }, "create trial " + key);
+
+    toast("Trial created ✓ " + key, false, "check_circle");
+    $("trialLabel").value = "";
+    $("trialNotes").value = "";
+    generateKey(true);
+
+  }catch(error){
+    toast(error.message, true, "error");
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="material-icons">add</i> CREATE TRIAL LICENSE';
+}
+
+$("btnAddTrial").onclick = addTrial;
+
+/* =========================================================
+   CREATE PREMIUM
+========================================================= */
+
+async function addPremium(){
+  const key = $("premKey").textContent.trim();
+  let value = parseInt($("premValue").value, 10) || 0;
+  const unit = $("premUnit").value;
+  let maxDevices = parseInt($("premDevices").value, 10) || 1;
+  const label = $("premLabel").value.trim();
+  const notes = $("premNotes").value.trim();
+  const autoDisable = $("premAutoDisable").value === "yes";
+  
+  // Import deadline
+  let deadlineValue = parseInt($("premDeadlineValue").value, 10) || 0;
+  const deadlineUnit = $("premDeadlineUnit").value;
+
+  maxDevices = Math.max(1, Math.min(1000, maxDevices));
+  value = Math.max(0, value);
+
+  const btn = $("btnAddPrem");
+  btn.disabled = true;
+  btn.innerHTML = '<i class="material-icons">hourglass_empty</i> CREATING...';
+
+  try{
+    await mutateDatabase(function(db){
+      if(db.keys.some(function(k){ return k.key === key; })){
+        throw new Error("Duplicate license key");
+      }
+
+      // Countdown starts on IMPORT in the APK — store the duration as days;
+      // the app stamps activated_at + expires_at + expiry on first import.
+      let days = 0;
+      if(value > 0){
+        switch(unit){
+          case "days": days = value; break;
+          case "weeks": days = value * 7; break;
+          case "months": days = value * 30; break;
+          case "years": days = value * 365; break;
+        }
+      }
+
+      // Calculate import deadline
+      let importDeadline = null;
+      if(deadlineValue > 0){
+        const deadlineDate = new Date();
+        switch(deadlineUnit){
+          case "hours": deadlineDate.setHours(deadlineDate.getHours() + deadlineValue); break;
+          case "days": deadlineDate.setDate(deadlineDate.getDate() + deadlineValue); break;
+          case "weeks": deadlineDate.setDate(deadlineDate.getDate() + (deadlineValue * 7)); break;
+          case "months": deadlineDate.setMonth(deadlineDate.getMonth() + deadlineValue); break;
+        }
+        importDeadline = deadlineDate.toISOString();
+      }
+
+      db.keys.push({
+        key: key,
+        type: "premium",
+        days: days,
+        expiry: "",
+        expires_at: "",
+        active: true,
+        created_at: isoNow(),
+        activated_at: "",
+        max_devices: maxDevices,
+        devices: [],
+        label: label,
+        notes: notes,
+        import_deadline: importDeadline,
+        import_deadline_unit: deadlineUnit,
+        import_deadline_value: deadlineValue,
+        auto_disable: autoDisable
+      });
+    }, "create premium " + key);
+
+    toast("Premium license created ✓", false, "check_circle");
+    $("premLabel").value = "";
+    $("premNotes").value = "";
+    generateKey(false);
+
+  }catch(error){
+    toast(error.message, true, "error");
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="material-icons">add</i> CREATE PREMIUM LICENSE';
+}
+
+$("btnAddPrem").onclick = addPremium;
+
+/* =========================================================
+   TOGGLE / ACTIVATION
+========================================================= */
+
+async function toggleKey(keyData){
+  const currentlyActive = keyData.active && !isExpired(keyData);
+  const action = currentlyActive ? "revoke" : "activate";
+  
+  const confirmed = await modal(
+    currentlyActive ? "Revoke license?" : "Activate license?",
+    currentlyActive ? "This will immediately disable this license." : "This will enable the license.",
+    "",
+    currentlyActive ? "do_not_disturb" : "check_circle"
+  );
+
+  if(!confirmed) return;
+
+  try{
+    await mutateDatabase(function(db){
+      const found = db.keys.find(function(k){ return k.key === keyData.key; });
+      if(!found) throw new Error("License no longer exists");
+
+      if(action === "revoke"){
+        found.active = false;
+        found.auto_disabled = false; // Clear auto-disable flag
+      }else{
+        // Manually activating an unimported key starts its countdown now
+        if(found.type === "trial" && !found.activated_at && found.minutes){
+          found.activated_at = isoNow();
+          const minutes = Math.max(1, parseInt(found.minutes, 10) || 10);
+          found.expires_at = new Date(Date.now() + minutes * 60000).toISOString();
+        }
+        if(found.type === "premium" && !found.activated_at && found.days){
+          const d = Math.max(1, parseInt(found.days, 10) || 30);
+          found.activated_at = isoNow();
+          const end = new Date(Date.now() + d * 86400000);
+          found.expires_at = end.toISOString();
+          found.expiry = dateOnly(end);
+        }
+        found.active = true;
+        found.auto_disabled = false; // Clear auto-disable flag
+      }
+    }, action + " " + keyData.key);
+
+    toast(action === "revoke" ? "License revoked" : "License activated", false, action === "revoke" ? "do_not_disturb" : "check_circle");
+
+  }catch(error){
+    toast(error.message, true, "error");
+  }
+}
+
+/* =========================================================
+   RESET DEVICES
+========================================================= */
+
+async function resetDevices(keyData){
+  const confirmed = await modal(
+    "Reset devices?",
+    "All currently bound devices for this license will be removed.",
+    "",
+    "devices"
+  );
+
+  if(!confirmed) return;
+
+  try{
+    await mutateDatabase(function(db){
+      const found = db.keys.find(function(k){ return k.key === keyData.key; });
+      if(!found) throw new Error("License not found");
+      found.devices = [];
+    }, "reset devices " + keyData.key);
+
+    toast("Device bindings reset", false, "check_circle");
+
+  }catch(error){
+    toast(error.message, true, "error");
+  }
+}
+
+/* =========================================================
+   EXTEND PREMIUM
+========================================================= */
+
+async function extendKey(keyData){
+  const input = '<label><i class="material-icons">calendar_today</i> EXTEND BY</label>' +
+    '<div class="form-row">' +
+      '<input id="modalDays" type="number" min="1" value="30">' +
+      '<select id="modalUnit">' +
+        '<option value="days">Days</option>' +
+        '<option value="weeks">Weeks</option>' +
+        '<option value="months">Months</option>' +
+        '<option value="years">Years</option>' +
+      '</select>' +
+    '</div>';
+
+  const confirmed = await modal(
+    "Extend license",
+    "Add additional time to this premium license.",
+    input,
+    "calendar_month"
+  );
+
+  if(!confirmed) return;
+
+  const value = Math.max(1, parseInt($("modalDays").value, 10) || 30);
+  const unit = $("modalUnit").value;
+
+  try{
+    await mutateDatabase(function(db){
+      const found = db.keys.find(function(k){ return k.key === keyData.key; });
+      if(!found) throw new Error("License not found");
+
+      // unimported premium key: just extend the stored duration (days) —
+      // its countdown has not started yet
+      if(!isImported(found) && found.days){
+        found.days = (parseInt(found.days, 10) || 0) +
+          (unit === "days" ? value : unit === "weeks" ? value * 7 : unit === "months" ? value * 30 : value * 365);
+        return;
+      }
+
+      let base;
+      if(found.expires_at && !isExpired(found)){
+        base = new Date(found.expires_at);
+      }else if(found.expiry && !isExpired(found)){
+        base = new Date(found.expiry + "T23:59:59");
+      }else{
+        base = new Date();
+      }
+
+      switch(unit){
+        case "days": base.setDate(base.getDate() + value); break;
+        case "weeks": base.setDate(base.getDate() + (value * 7)); break;
+        case "months": base.setMonth(base.getMonth() + value); break;
+        case "years": base.setFullYear(base.getFullYear() + value); break;
+      }
+
+      found.expiry = dateOnly(base);
+      found.expires_at = base.toISOString();
+      found.active = true;
+      found.auto_disabled = false;
+
+    }, "extend " + keyData.key + " +" + value + " " + unit);
+
+    toast("License extended +" + value + " " + unit, false, "check_circle");
+
+  }catch(error){
+    toast(error.message, true, "error");
+  }
+}
+
+/* =========================================================
+   SET IMPORT DEADLINE
+========================================================= */
+
+async function setImportDeadline(keyData){
+  const input = '<label><i class="material-icons">alarm</i> SET DEADLINE</label>' +
+    '<div class="form-row">' +
+      '<input id="deadlineValue" type="number" min="1" value="24">' +
+      '<select id="deadlineUnit">' +
+        '<option value="hours">Hours</option>' +
+        '<option value="days">Days</option>' +
+        '<option value="weeks">Weeks</option>' +
+      '</select>' +
+    '</div>' +
+    '<p style="font-size:10px;color:var(--muted);margin-top:8px;">' +
+      '<i class="material-icons" style="font-size:12px;vertical-align:middle;">info</i> ' +
+      'Key will be auto-removed if not activated within this time.' +
+    '</p>';
+
+  const confirmed = await modal(
+    "Set Import Deadline",
+    "Set a deadline for when this key must be activated.",
+    input,
+    "alarm"
+  );
+
+  if(!confirmed) return;
+
+  const value = Math.max(1, parseInt($("deadlineValue").value, 10) || 24);
+  const unit = $("deadlineUnit").value;
+
+  try{
+    await mutateDatabase(function(db){
+      const found = db.keys.find(function(k){ return k.key === keyData.key; });
+      if(!found) throw new Error("License not found");
+
+      const deadlineDate = new Date();
+      switch(unit){
+        case "hours": deadlineDate.setHours(deadlineDate.getHours() + value); break;
+        case "days": deadlineDate.setDate(deadlineDate.getDate() + value); break;
+        case "weeks": deadlineDate.setDate(deadlineDate.getDate() + (value * 7)); break;
+      }
+
+      found.import_deadline = deadlineDate.toISOString();
+      found.import_deadline_unit = unit;
+      found.import_deadline_value = value;
+
+    }, "set deadline " + keyData.key + " +" + value + " " + unit);
+
+    toast("Import deadline set: " + value + " " + unit, false, "check_circle");
+
+  }catch(error){
+    toast(error.message, true, "error");
+  }
+}
+
+/* =========================================================
+   DELETE
+========================================================= */
+
+async function deleteKey(keyData){
+  const confirmed = await modal(
+    "Delete license?",
+    "This permanently removes " + keyData.key + " from keys.json. This cannot be undone.",
+    "",
+    "delete"
+  );
+
+  if(!confirmed) return;
+
+  try{
+    await mutateDatabase(function(db){
+      const index = db.keys.findIndex(function(k){ return k.key === keyData.key; });
+      if(index === -1) throw new Error("License not found");
+      db.keys.splice(index, 1);
+    }, "delete " + keyData.key);
+
+    toast("License deleted", false, "delete");
+
+  }catch(error){
+    toast(error.message, true, "error");
+  }
+}
+
+/* =========================================================
+   DEVICE IMPORT TRACKING
+========================================================= */
+
+/**
+ * Called when Android app submits key import
+ * @param {string} key - License key
+ * @param {string} deviceHash - SHA-256 device hash
+ * @param {string} deviceName - Device model name
+ * @returns {object} Success/error response
+ */
+function handleDeviceImport(key, deviceHash, deviceName){
+  try{
+    // Find the key
+    const keyObj = DB.keys.find(k => k.key === key);
+    if(!keyObj){
+      return {
+        success: false,
+        error: 'KEY_NOT_FOUND',
+        message: 'License key not found'
+      };
+    }
+    
+    // Check if key is active
+    if(!keyObj.active){
+      return {
+        success: false,
+        error: 'KEY_INACTIVE',
+        message: 'License key is disabled'
+      };
+    }
+    
+    // Check if expired
+    if(isExpired(keyObj)){
+      return {
+        success: false,
+        error: 'KEY_EXPIRED',
+        message: 'License key has expired'
+      };
+    }
+    
+    // Initialize devices array
+    if(!keyObj.devices) keyObj.devices = [];
+    
+    // Check if device already registered
+    if(keyObj.devices.some(d => (d.id || d.hash) === deviceHash)){
+      return {
+        success: false,
+        error: 'DEVICE_ALREADY_REGISTERED',
+        message: 'This device has already activated this key'
+      };
+    }
+    
+    // Check device limit
+    const maxDevices = keyObj.max_devices || 1;
+    if(keyObj.devices.length >= maxDevices){
+      return {
+        success: false,
+        error: 'DEVICE_LIMIT_REACHED',
+        message: 'Device limit reached (' + keyObj.devices.length + '/' + maxDevices + ')'
+      };
+    }
+    
+    // All checks passed - register device
+    keyObj.devices.push({
+      id: deviceHash,
+      hash: deviceHash,
+      name: deviceName,
+      import_time: isoNow(),
+      imported_at: Date.now()
+    });
+    
+    // Save to Codeberg
+    mutateDatabase(function(db){
+      const k = db.keys.find(x => x.key === key);
+      if(k) k.devices = keyObj.devices;
+    }, 'device import: ' + deviceName);
+    
+    return {
+      success: true,
+      message: 'Device registered successfully',
+      device_count: keyObj.devices.length,
+      max_devices: maxDevices
+    };
+    
+  }catch(error){
+    return {
+      success: false,
+      error: 'INTERNAL_ERROR',
+      message: error.message
+    };
+  }
+}
+
+/* =========================================================
+   EXPORT JSON
+========================================================= */
+
+function downloadFile(filename, content, type){
+  const blob = new Blob([content], {type: type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+
+$("btnExport").onclick = function(){
+  downloadFile(
+    "keys-backup-" + dateOnly(Date.now()) + ".json",
+    JSON.stringify(DB, null, 2),
+    "application/json"
+  );
+  toast("JSON backup exported", false, "file_download");
+};
+
+/* =========================================================
+   EXPORT CSV
+========================================================= */
+
+function csvEscape(value){
+  return '"' + String(value == null ? "" : value).replace(/"/g, '""') + '"';
+}
+
+$("btnExportCSV").onclick = function(){
+  const header = [
+    "key","type","active","expiry","expires_at","created_at","activated_at",
+    "max_devices","device_count","label","notes","import_deadline","devices","auto_disable","days"
+  ];
+
+  const rows = [header].concat(DB.keys.map(function(k){
+    return [
+      k.key,
+      k.type,
+      k.active,
+      k.expiry || "",
+      k.expires_at || "",
+      k.created_at || "",
+      k.activated_at || "",
+      k.max_devices || 1,
+      (k.devices || []).length,
+      k.label || "",
+      k.notes || "",
+      k.import_deadline || "",
+      (k.devices || []).map(d => (d.name || d.id) + (d.ip ? " (" + d.ip + ")" : "")).join(", "),
+      k.auto_disable || false,
+      k.days || ""
+    ];
+  }));
+
+  const csv = rows.map(function(row){
+    return row.map(csvEscape).join(",");
+  }).join("\n");
+
+  downloadFile(
+    "scannerkeys-" + dateOnly(Date.now()) + ".csv",
+    csv,
+    "text/csv"
+  );
+
+  toast("CSV exported", false, "table_chart");
+};
+
+/* =========================================================
+   BULK DISABLE
+========================================================= */
+
+$("btnDisableAll").onclick = async function(){
+  const confirmed = await modal(
+    "Disable all active keys?",
+    "Every currently active license will be revoked.",
+    "",
+    "do_not_disturb"
+  );
+
+  if(!confirmed) return;
+
+  try{
+    await mutateDatabase(function(db){
+      db.keys.forEach(function(k){
+        if(k.active) k.active = false;
+        k.auto_disabled = false;
+      });
+    }, "bulk revoke all keys");
+
+    toast("All active licenses disabled", false, "check_circle");
+
+  }catch(error){
+    toast(error.message, true, "error");
+  }
+};
+
+/* =========================================================
+   BULK ENABLE
+========================================================= */
+
+$("btnEnableAll").onclick = async function(){
+  const confirmed = await modal(
+    "Enable all keys?",
+    "This will activate all non-expired licenses.",
+    "",
+    "check_circle"
+  );
+
+  if(!confirmed) return;
+
+  try{
+    await mutateDatabase(function(db){
+      db.keys.forEach(function(k){
+        if(!isExpired(k)) {
+          k.active = true;
+          k.auto_disabled = false;
+        }
+      });
+    }, "bulk activate all keys");
+
+    toast("All non-expired licenses enabled", false, "check_circle");
+
+  }catch(error){
+    toast(error.message, true, "error");
+  }
+};
+
+/* =========================================================
+   CLEANUP EXPIRED & UNIMPORTED
+========================================================= */
+
+$("btnCleanup").onclick = async function(){
+  const confirmed = await modal(
+    "Remove expired and unimported keys?",
+    "This will permanently delete all expired licenses and keys that were not imported before their deadline.",
+    "",
+    "delete_sweep"
+  );
+
+  if(!confirmed) return;
+
+  try{
+    await mutateDatabase(function(db){
+      db.keys = db.keys.filter(function(k){
+        // Keep if not expired
+        if(!isExpired(k)) return true;
+        // Keep if imported/activated
+        if(k.activated_at) return true;
+        // Keep if no import deadline
+        if(!k.import_deadline) return true;
+        // Remove if expired and unimported
+        return false;
+      });
+    }, "cleanup expired and unimported keys");
+
+    toast("Cleanup completed", false, "check_circle");
+
+  }catch(error){
+    toast(error.message, true, "error");
+  }
+};
+
+/* =========================================================
+   CLEAR CONFIG
+========================================================= */
+
+$("btnClearConfig").onclick = async function(){
+  const confirmed = await modal(
+    "Clear connection?",
+    "Remove the locally saved Codeberg connection settings from this browser.",
+    "",
+    "delete"
+  );
+
+  if(!confirmed) return;
+
+  CFG_KEYS.forEach(function(id){
+    localStorage.removeItem("sk_" + id);
+  });
+
+  $("cfgToken").value = "";
+  $("cfgOwner").value = "Treacky";
+  $("cfgRepo").value = "ScannerKeys";
+  $("cfgFile").value = "keys.json";
+  $("cfgBranch").value = "main";
+
+  connected = false;
+  FILE_SHA = null;
+
+  $("connectionStatus").innerHTML = '<i class="material-icons">cloud_off</i> OFFLINE';
+  $("connectionStatus").classList.remove("online");
+
+  toast("Connection settings cleared", false, "check_circle");
+};
+
+/* =========================================================
+   SAVE SETTINGS
+========================================================= */
+
+$("btnSaveSettings").onclick = async function(){
+  const settings = getSettings();
+  
+  // Save to localStorage
+  localStorage.setItem("sk_autoRemoveValue", settings.autoRemoveValue);
+  localStorage.setItem("sk_autoRemoveUnit", settings.autoRemoveUnit);
+  localStorage.setItem("sk_expiryWarningDays", settings.expiryWarningDays);
+  localStorage.setItem("sk_globalAutoDisable", settings.globalAutoDisable);
+  localStorage.setItem("sk_refreshInterval", Math.floor(settings.refreshInterval / 1000));
+  
+  // Restart auto systems with new settings
+  startAutoSystems();
+  
+  toast("Settings saved", false, "check_circle");
+};
+
+/* =========================================================
+   AUTO SYSTEMS
+========================================================= */
+
+function startAutoSystems(){
+  const settings = getSettings();
+  
+  // Clear existing intervals
+  if(autoCleanupInterval) clearInterval(autoCleanupInterval);
+  if(autoDisableInterval) clearInterval(autoDisableInterval);
+  if(countdownInterval) clearInterval(countdownInterval);
+  if(refreshInterval) clearInterval(refreshInterval);
+  
+  // Auto-cleanup: Check every 5 minutes
+  autoCleanupInterval = setInterval(async function(){
+    if(!connected) return;
+    
+    if(settings.autoRemoveValue <= 0) return;
+    
+    try{
+      const fresh = await readFile();
+      FILE_SHA = fresh.sha;
+      DB = fresh.json || {};
+      DB.keys = Array.isArray(DB.keys) ? DB.keys : [];
+      
+      const now = Date.now();
+      const autoRemoveMs = {
+        hours: settings.autoRemoveValue * 60 * 60 * 1000,
+        days: settings.autoRemoveValue * 24 * 60 * 60 * 1000
+      }[settings.autoRemoveUnit] || (settings.autoRemoveValue * 60 * 60 * 1000);
+      
+      let removedCount = 0;
+      
+      DB.keys = DB.keys.filter(function(k){
+        // Only auto-remove if:
+        // 1. Key has no import_deadline set (meaning use global setting)
+        // 2. Key is not activated
+        // 3. Key was created more than autoRemove time ago
+        if(!k.import_deadline && !k.activated_at && k.created_at){
+          const created = new Date(k.created_at).getTime();
+          if(now - created > autoRemoveMs){
+            removedCount++;
+            return false; // Remove
+          }
+        }
+        return true;
+      });
+      
+      if(removedCount > 0){
+        await writeFile(FILE_SHA, DB, "auto-cleanup: removed " + removedCount + " unimported keys");
+        render();
+      }
+      
+    }catch(error){
+      console.error("Auto-cleanup error:", error);
+    }
+  }, 5 * 60 * 1000); // 5 minutes
+
+  // Auto-disable: Check every minute
+  autoDisableInterval = setInterval(async function(){
+    if(!connected) return;
+    
+    try{
+      const fresh = await readFile();
+      FILE_SHA = fresh.sha;
+      DB = fresh.json || {};
+      DB.keys = Array.isArray(DB.keys) ? DB.keys : [];
+      
+      const now = Date.now();
+      let disabledCount = 0;
+      
+      DB.keys.forEach(function(k){
+        normalizeKey(k);
+        
+        // Check if should auto-disable
+        if(k.auto_disable || settings.globalAutoDisable === "yes"){
+          if(isExpired(k) && k.activated_at && k.active){
+            k.active = false;
+            k.auto_disabled = true;
+            disabledCount++;
+          }
+        }
+      });
+      
+      if(disabledCount > 0){
+        await writeFile(FILE_SHA, DB, "auto-disable: disabled " + disabledCount + " expired keys");
+        render();
+      }
+      
+    }catch(error){
+      console.error("Auto-disable error:", error);
+    }
+  }, 60 * 1000); // 1 minute
+
+  // Live countdown refresh
+  countdownInterval = setInterval(function(){
+    if(connected){
+      render();
+    }
+  }, 1000); // Update every second
+
+  // Full refresh (for checking external changes)
+  refreshInterval = setInterval(async function(){
+    if(!connected) return;
+    try{
+      await refresh();
+    }catch(e){}
+  }, settings.refreshInterval);
+}
+
+/* =========================================================
+   INITIAL & TESTING
+========================================================= */
+
+render();
+
+// Console testing function
+window.testDeviceImport = function(key, hash, name){
+  if(!key) key = DB.keys[0]?.key || 'TEST-KEY';
+  if(!hash) hash = 'device_hash_' + Math.random().toString(36).substring(7);
+  if(!name) name = 'Test Device';
+  
+  const result = handleDeviceImport(key, hash, name);
+  console.log('Import result:', result);
+  toast(result.message, !result.success, result.success ? 'check_circle' : 'error');
+  render();
+  return result;
+};
+
+// Load settings on page load
+const savedSettings = {
+  autoRemoveValue: localStorage.getItem("sk_autoRemoveValue"),
+  autoRemoveUnit: localStorage.getItem("sk_autoRemoveUnit"),
+  expiryWarningDays: localStorage.getItem("sk_expiryWarningDays"),
+  globalAutoDisable: localStorage.getItem("sk_globalAutoDisable"),
+  refreshInterval: localStorage.getItem("sk_refreshInterval")
+};
+
+if(savedSettings.autoRemoveValue !== null) $("autoRemoveValue").value = savedSettings.autoRemoveValue;
+if(savedSettings.autoRemoveUnit !== null) $("autoRemoveUnit").value = savedSettings.autoRemoveUnit;
+if(savedSettings.expiryWarningDays !== null) $("expiryWarningDays").value = savedSettings.expiryWarningDays;
+if(savedSettings.globalAutoDisable !== null) $("globalAutoDisable").value = savedSettings.globalAutoDisable;
+if(savedSettings.refreshInterval !== null) $("refreshInterval").value = savedSettings.refreshInterval;
+</script>
+
+</body>
+</html>
