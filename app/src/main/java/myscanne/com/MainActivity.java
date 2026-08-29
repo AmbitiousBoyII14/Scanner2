@@ -1,0 +1,795 @@
+package myscanne.com;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Bundle;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+public class MainActivity extends Activity {
+
+    private TextView tvTotalScans, tvTotalHits, tvHeader, tvSub;
+
+    private LinearLayout quickContainer, drawerList, statsRow;
+
+    private View drawerScrim;
+
+    private LinearLayout drawerNav, homeContent, drawerHeader, statCardScans, statCardHits;
+
+    private FrameLayout mainFrame;
+
+    private Button btnScanAllOffline, btnScanAllOnline, drawerHistory, drawerCustomize;
+
+    private boolean drawerOpen = false;
+
+    private static final String[][] MENU = {
+            {"BugHost Probe", "WAF + tech + takeover + WS + endpoints", "BUGHOST", "offline"},
+            {"DPI Scanner", "Fragmented WS DPI bypass detection", "DPI", "offline"},
+            {"WS Tester", "WebSocket upgrade test", "WS", "offline"},
+            {"SNI Scanner", "Direct SSL to Google IP + SNI host", "SNI", "offline"},
+            {"TLS Scanner", "HTTP status + server banner over TLS", "TLS", "offline"},
+            {"Proxy Scanner", "Check host as proxy (custom SNI)", "PROXY", "offline"},
+            {"Port Checker", "Scan TCP ports with service detection", "PORT", "offline"},
+            {"Tech Fingerprint", "Server, framework, CMS, CDN detection", "TECH", "offline"},
+            {"DNS Lookup", "A, AAAA, CNAME, MX, NS, TXT records", "DNS", "offline"},
+            {"Security Headers", "Score HTTP security response headers", "HEADERS", "offline"},
+            {"HTTP Version", "Probe HTTP/1.1, HTTP/2, HTTP/3 support", "HTTP_VER", "offline"},
+            {"CDN Checker", "Detect CDN provider from headers", "CDN", "offline"},
+            {"Ping Test", "TCP ping with latency stats", "PING", "offline"},
+            {"SSL Certificate", "View cert info, expiry, SANs", "CERT", "offline"},
+            {"Redirect Tracer", "Trace HTTP redirect chain", "REDIRECT", "offline"},
+
+            {"Deep Enumeration", "4-source: crt+certspotter+alienvault+HT", "DEEPENUM", "online"},
+            {"Takeover Check", "Deep enum + CNAME takeover detection", "TAKEOVER", "online"},
+            {"Endpoint Fuzzer", "Fuzz " + ScanEngine.COMMON_PATHS.length + " sensitive paths", "ENDPOINT", "online"},
+            {"Wayback URLs", "Fetch historical URLs + juicy filter", "WAYBACK", "online"},
+            {"Subdomain Finder", "crt.sh CT logs + brute-force", "SUBDOMAIN", "online"},
+            {"Hosts Finder", "Find domains by TLD via crt.sh", "HOSTS", "online"},
+            {"Reverse IP", "PTR + multi-source reverse lookup", "REVIP", "online"},
+            {"CIDR Enumerator", "IPs + PTRs + CDN/hoster range + reverse IP", "CIDR", "online"},
+            {"IP Geolocation", "Country, city, ISP, ASN lookup", "GEO", "online"},
+            {"Whois Lookup", "RDAP domain registration data", "WHOIS", "online"},
+
+            {"TXT Splitter", "Split lists into 25k-line parts", "SPLIT", "util"},
+    };
+
+    @Override
+    protected void onCreate(Bundle s) {
+        super.onCreate(s);
+        setContentView(R.layout.activity_main);
+
+        mainFrame = (FrameLayout) findViewById(R.id.mainFrame);
+        homeContent = (LinearLayout) findViewById(R.id.homeContent);
+
+        drawerScrim = findViewById(R.id.drawerScrim);
+        drawerNav = (LinearLayout) findViewById(R.id.drawerNav);
+
+        tvHeader = (TextView) findViewById(R.id.tvHeader);
+        tvSub = (TextView) findViewById(R.id.tvSub);
+
+        tvTotalScans = (TextView) findViewById(R.id.tvTotalScans);
+        tvTotalHits = (TextView) findViewById(R.id.tvTotalHits);
+
+        quickContainer = (LinearLayout) findViewById(R.id.quickContainer);
+        drawerList = (LinearLayout) findViewById(R.id.drawerList);
+        statsRow = (LinearLayout) findViewById(R.id.statsRow);
+
+        drawerHeader = (LinearLayout) findViewById(R.id.drawerHeader);
+
+        statCardScans = (LinearLayout) findViewById(R.id.statCardScans);
+        statCardHits = (LinearLayout) findViewById(R.id.statCardHits);
+
+        btnScanAllOffline = (Button) findViewById(R.id.btnScanAllOffline);
+        btnScanAllOnline = (Button) findViewById(R.id.btnScanAllOnline);
+
+        final TextView btnHamburger = (TextView) findViewById(R.id.btnHamburger);
+
+        btnHamburger.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleDrawer();
+            }
+        });
+
+        drawerScrim.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                closeDrawer();
+            }
+        });
+
+        drawerHistory = (Button) findViewById(R.id.drawerHistory);
+
+        drawerHistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                closeDrawer();
+                startActivity(new Intent(MainActivity.this, HistoryActivity.class));
+            }
+        });
+
+        drawerCustomize = (Button) findViewById(R.id.drawerCustomize);
+
+        drawerCustomize.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                closeDrawer();
+                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+            }
+        });
+
+        btnScanAllOffline.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openScanner("ALLOFFLINE", "Scan All Offline");
+            }
+        });
+
+        btnScanAllOnline.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openScanner("ALLONLINE", "Scan All Online");
+            }
+        });
+    }
+
+    private void openScanner(String m, String t) {
+        if (G.k(this, m)) {
+            android.widget.Toast.makeText(this, m + X.p(40), android.widget.Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Intent in = new Intent(MainActivity.this, ScannerActivity.class);
+
+        in.putExtra("mode", m);
+        in.putExtra("title", t);
+
+        startActivity(in);
+    }
+
+    private void resetToLauncher() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Log out?")
+                .setMessage("This clears the saved session and returns to the key screen.")
+                .setPositiveButton("Log out", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        SharedPreferences sp = getSharedPreferences("cf", MODE_PRIVATE);
+                        sp.edit().clear().apply();
+
+                        Intent in = new Intent(MainActivity.this, LauncherActivity.class);
+
+                        in.putExtra("forceShowLauncher", true);
+                        in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                        startActivity(in);
+                        finish();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        applyTheme();
+
+        int[] fl = G.i(this);
+
+        tvSub.setText(
+                G.a(this)
+                        ? ((G.b(this) ? X.p(43) : X.p(44)) + " - " + G.e(this))
+                        : X.q(3, fl[0], fl[1])
+        );
+
+        tvTotalScans.setText(String.valueOf(HistoryStore.totalScans(this)));
+        tvTotalHits.setText(String.valueOf(HistoryStore.totalHits(this)));
+
+        buildQuickAccess();
+        buildDrawer();
+
+        showTutorialOnce();
+    }
+
+    private void showTutorialOnce() {
+        if (Prefs.seenTutorial(this)) return;
+
+        Prefs.markTutorialSeen(this);
+
+        final int accent = Prefs.accent(this);
+        final int info = Prefs.info(this);
+        final int text = Prefs.text(this);
+        final int muted = Prefs.muted(this);
+
+        LinearLayout wrap = new LinearLayout(this);
+        wrap.setOrientation(LinearLayout.VERTICAL);
+        wrap.setPadding(dp(20), dp(8), dp(20), dp(4));
+
+        String[][] steps = {
+                {"1", "Open the menu", "Tap the \u2630 burger button top-left."},
+                {"2", "Pick a tool", "Choose one, e.g. TLS Scanner."},
+                {"3", "Single scan", "Type a domain and tap the scan button."},
+                {"4", "File scan", "Or tap FILE to scan a whole host list."},
+        };
+
+        for (int i = 0; i < steps.length; i++) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(0, dp(6), 0, dp(6));
+
+            TextView num = new TextView(this);
+            num.setText(steps[i][0]);
+            num.setTextColor(Theme.onColor(i == 0 ? accent : info));
+            num.setTextSize(14f);
+            num.setTypeface(null, Typeface.BOLD);
+            num.setGravity(Gravity.CENTER);
+
+            GradientDrawable bgd = new GradientDrawable();
+            bgd.setColor(i == 0 ? accent : info);
+            bgd.setShape(GradientDrawable.OVAL);
+
+            num.setBackgroundDrawable(bgd);
+
+            int sz = dp(30);
+            row.addView(num);
+            num.setLayoutParams(new LinearLayout.LayoutParams(sz, sz));
+
+            LinearLayout txt = new LinearLayout(this);
+            txt.setOrientation(LinearLayout.VERTICAL);
+
+            LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
+                    0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    1f
+            );
+
+            tlp.leftMargin = dp(12);
+            txt.setLayoutParams(tlp);
+
+            TextView t1 = new TextView(this);
+            t1.setText(steps[i][1]);
+            t1.setTextColor(text);
+            t1.setTextSize(14f);
+            t1.setTypeface(null, Typeface.BOLD);
+
+            txt.addView(t1);
+
+            TextView t2 = new TextView(this);
+            t2.setText(steps[i][2]);
+            t2.setTextColor(muted);
+            t2.setTextSize(12f);
+
+            txt.addView(t2);
+
+            row.addView(txt);
+
+            wrap.addView(row);
+        }
+
+        TextView tip = new TextView(this);
+        tip.setText("\u2713 Only successful hits are shown and saved to Downloads/BugScanner.");
+        tip.setTextColor(muted);
+        tip.setTextSize(12f);
+        tip.setPadding(0, dp(10), 0, 0);
+
+        wrap.addView(tip);
+
+        new AlertDialog.Builder(this)
+                .setTitle("How to scan")
+                .setView(wrap)
+                .setPositiveButton("Got it", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int w) {
+                    }
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    private void applyTheme() {
+        int bg = Prefs.bg(this);
+        int card = Prefs.card(this);
+        int accent = Prefs.accent(this);
+        int text = Prefs.text(this);
+        int muted = Prefs.muted(this);
+        int info = Prefs.info(this);
+        int stroke = Prefs.stroke(this);
+
+        mainFrame.setBackgroundColor(bg);
+        homeContent.setBackgroundColor(bg);
+        drawerNav.setBackgroundColor(card);
+
+        ((LinearLayout) findViewById(R.id.homeTopBar)).setBackgroundColor(card);
+        ((TextView) findViewById(R.id.btnHamburger)).setTextColor(accent);
+
+        tvHeader.setTextColor(accent);
+        tvSub.setTextColor(muted);
+
+        statCardScans.setBackgroundDrawable(makeCard(card, stroke));
+        statCardHits.setBackgroundDrawable(makeCard(card, stroke));
+
+        tvTotalScans.setTextColor(info);
+        tvTotalHits.setTextColor(accent);
+
+        btnScanAllOffline.setBackgroundDrawable(Theme.outline(this, info));
+        btnScanAllOffline.setTextColor(info);
+
+        btnScanAllOnline.setBackgroundDrawable(Theme.outline(this, accent));
+        btnScanAllOnline.setTextColor(accent);
+
+        if (drawerHeader != null) drawerHeader.setBackgroundColor(bg);
+
+        drawerHistory.setBackgroundDrawable(Theme.outline(this, info));
+        drawerHistory.setTextColor(info);
+
+        drawerCustomize.setBackgroundDrawable(Theme.filled(this, accent));
+        drawerCustomize.setTextColor(Theme.onColor(accent));
+    }
+
+    private void toggleDrawer() {
+        if (drawerOpen) closeDrawer();
+        else openDrawer();
+    }
+
+    private void openDrawer() {
+        drawerOpen = true;
+
+        drawerNav.setVisibility(View.VISIBLE);
+        drawerScrim.setVisibility(View.VISIBLE);
+
+        int width = drawerNav.getWidth();
+
+        if (width <= 0) width = dpWidth(280);
+
+        drawerNav.clearAnimation();
+
+        TranslateAnimation anim = new TranslateAnimation(-width, 0, 0, 0);
+        anim.setDuration(220);
+
+        drawerNav.startAnimation(anim);
+    }
+
+    private void closeDrawer() {
+        if (!drawerOpen) return;
+
+        drawerOpen = false;
+
+        int width = drawerNav.getWidth();
+
+        if (width <= 0) width = dpWidth(280);
+
+        drawerNav.clearAnimation();
+
+        TranslateAnimation anim = new TranslateAnimation(0, -width, 0, 0);
+        anim.setDuration(200);
+
+        anim.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                drawerNav.setVisibility(View.GONE);
+                drawerScrim.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+
+        drawerNav.startAnimation(anim);
+
+        drawerScrim.setVisibility(View.GONE);
+    }
+
+    private int dpWidth(int v) {
+        return (int) (v * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private int dp(int v) {
+        return (int) (v * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private void buildQuickAccess() {
+        quickContainer.removeAllViews();
+
+        String[][] quick = {
+                {"BugHost Probe", "BUGHOST"},
+                {"TLS Scanner", "TLS"},
+                {"Port Checker", "PORT"},
+                {"Deep Enumeration", "DEEPENUM"},
+                {"Subdomain Finder", "SUBDOMAIN"},
+                {"CIDR Enumerator", "CIDR"},
+        };
+
+        int cols = 2;
+
+        LinearLayout row = null;
+
+        for (int i = 0; i < quick.length; i++) {
+            if (i % cols == 0) {
+                row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setLayoutParams(new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                ));
+
+                quickContainer.addView(row);
+            }
+
+            final String title = quick[i][0];
+            final String mode = quick[i][1];
+
+            final LinearLayout card = new LinearLayout(this);
+            card.setOrientation(LinearLayout.VERTICAL);
+            card.setGravity(Gravity.CENTER);
+            card.setBackgroundDrawable(makeCard(Prefs.card(this), Prefs.stroke(this)));
+            card.setPadding(dp(10), dp(14), dp(10), dp(14));
+
+            LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(
+                    0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    1f
+            );
+
+            clp.bottomMargin = dp(8);
+
+            if (i % cols == 0) clp.rightMargin = dp(4);
+            else clp.leftMargin = dp(4);
+
+            card.setLayoutParams(clp);
+            card.setClickable(true);
+
+            TextView badge = new TextView(this);
+            badge.setText(getIconForMode(mode));
+            badge.setTextColor(Color.WHITE);
+            badge.setTextSize(18f);
+            badge.setTypeface(null, Typeface.BOLD);
+            badge.setGravity(Gravity.CENTER);
+
+            GradientDrawable bgd = new GradientDrawable();
+            bgd.setColor(getBadgeColor(mode));
+            bgd.setShape(GradientDrawable.OVAL);
+
+            badge.setBackgroundDrawable(bgd);
+
+            int bs = dp(40);
+            badge.setLayoutParams(new LinearLayout.LayoutParams(bs, bs));
+
+            card.addView(badge);
+
+            TextView tvTitle = new TextView(this);
+            tvTitle.setText(title);
+            tvTitle.setTextColor(Prefs.text(this));
+            tvTitle.setTextSize(12f);
+            tvTitle.setTypeface(null, Typeface.BOLD);
+            tvTitle.setGravity(Gravity.CENTER);
+            tvTitle.setPadding(0, dp(6), 0, 0);
+
+            card.addView(tvTitle);
+
+            card.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent in = new Intent(MainActivity.this, ScannerActivity.class);
+
+                    in.putExtra("mode", mode);
+                    in.putExtra("title", title);
+
+                    startActivity(in);
+                }
+            });
+
+            if (row != null) row.addView(card);
+        }
+    }
+
+    private void buildDrawer() {
+        drawerList.removeAllViews();
+
+        addScanAllItem("SCAN ALL OFFLINE", "ALLOFFLINE", Prefs.info(this), "\u21AF");
+        addScanAllItem("SCAN ALL ONLINE", "ALLONLINE", Prefs.accent(this), "\u21AF");
+
+        addDrawerSection("OFFLINE");
+        addDrawerTools("offline");
+
+        addDrawerSection("ONLINE");
+        addDrawerTools("online");
+
+        addDrawerSection("UTILITIES");
+        addDrawerTools("util");
+
+        addDrawerSection("ADMIN");
+
+        LinearLayout adminRow = new LinearLayout(this);
+        adminRow.setOrientation(LinearLayout.HORIZONTAL);
+        adminRow.setPadding(dp(12), dp(4), dp(12), dp(4));
+
+        Button btnAdmin = new Button(this);
+        btnAdmin.setText("ADMIN");
+        btnAdmin.setTextColor(Prefs.info(this));
+        btnAdmin.setTextSize(13f);
+        btnAdmin.setTypeface(null, Typeface.BOLD);
+        btnAdmin.setBackgroundDrawable(Theme.outline(this, Prefs.info(this)));
+
+        LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f
+        );
+
+        alp.rightMargin = dp(6);
+        btnAdmin.setLayoutParams(alp);
+
+        btnAdmin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                closeDrawer();
+
+                Intent ai = new Intent(MainActivity.this, LauncherActivity.class);
+
+                ai.putExtra("forceShowLauncher", true);
+                ai.putExtra("openAdmin", true);
+
+                startActivity(ai);
+            }
+        });
+
+        adminRow.addView(btnAdmin);
+
+        Button btnLogout = new Button(this);
+        btnLogout.setText("LOG OUT");
+        btnLogout.setTextColor(Prefs.accent(this));
+        btnLogout.setTextSize(13f);
+        btnLogout.setTypeface(null, Typeface.BOLD);
+        btnLogout.setBackgroundDrawable(Theme.outline(this, Prefs.accent(this)));
+
+        LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f
+        );
+
+        llp.leftMargin = dp(6);
+        btnLogout.setLayoutParams(llp);
+
+        btnLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                closeDrawer();
+                resetToLauncher();
+            }
+        });
+
+        adminRow.addView(btnLogout);
+
+        drawerList.addView(adminRow);
+    }
+
+    private void addScanAllItem(final String label, final String mode, int color, String icon) {
+        LinearLayout item = new LinearLayout(this);
+        item.setOrientation(LinearLayout.HORIZONTAL);
+        item.setGravity(Gravity.CENTER_VERTICAL);
+        item.setPadding(dp(16), dp(12), dp(16), dp(12));
+        item.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        item.setClickable(true);
+
+        item.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                closeDrawer();
+
+                Intent in = new Intent(MainActivity.this, ScannerActivity.class);
+
+                in.putExtra("mode", mode);
+                in.putExtra("title", label);
+
+                startActivity(in);
+            }
+        });
+
+        TextView ic = new TextView(this);
+        ic.setText(icon);
+        ic.setTextColor(color);
+        ic.setTextSize(18f);
+        ic.setTypeface(null, Typeface.BOLD);
+        ic.setGravity(Gravity.CENTER);
+
+        GradientDrawable icb = new GradientDrawable();
+        icb.setColor(0x33000000 | (color & 0x00FFFFFF));
+        icb.setShape(GradientDrawable.OVAL);
+
+        ic.setBackgroundDrawable(icb);
+
+        int isz = dp(34);
+        ic.setLayoutParams(new LinearLayout.LayoutParams(isz, isz));
+
+        item.addView(ic);
+
+        TextView tx = new TextView(this);
+        tx.setText(label);
+        tx.setTextColor(color);
+        tx.setTextSize(14f);
+        tx.setTypeface(null, Typeface.BOLD);
+
+        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f
+        );
+
+        tlp.leftMargin = dp(12);
+        tx.setLayoutParams(tlp);
+
+        item.addView(tx);
+
+        drawerList.addView(item);
+    }
+
+    private void addDrawerSection(String label) {
+        TextView tv = new TextView(this);
+        tv.setText(label);
+        tv.setTextColor(Prefs.muted(this));
+        tv.setTextSize(10f);
+        tv.setTypeface(null, Typeface.BOLD);
+        tv.setPadding(dp(16), dp(10), dp(16), dp(2));
+
+        drawerList.addView(tv);
+    }
+
+    private void addDrawerTools(String category) {
+        for (int i = 0; i < MENU.length; i++) {
+            final String title = MENU[i][0];
+            final String desc = MENU[i][1];
+            final String mode = MENU[i][2];
+            final String type = MENU[i][3];
+
+            if (!category.equals(type)) continue;
+
+            LinearLayout item = new LinearLayout(this);
+            item.setOrientation(LinearLayout.HORIZONTAL);
+            item.setGravity(Gravity.CENTER_VERTICAL);
+            item.setPadding(dp(16), dp(10), dp(16), dp(10));
+            item.setClickable(true);
+
+            item.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    closeDrawer();
+
+                    Intent in = new Intent(MainActivity.this, ScannerActivity.class);
+
+                    in.putExtra("mode", mode);
+                    in.putExtra("title", title);
+
+                    startActivity(in);
+                }
+            });
+
+            TextView badge = new TextView(this);
+            badge.setText(getIconForMode(mode));
+            badge.setTextColor(Color.WHITE);
+            badge.setTextSize(14f);
+            badge.setTypeface(null, Typeface.BOLD);
+            badge.setGravity(Gravity.CENTER);
+
+            GradientDrawable bgd = new GradientDrawable();
+            bgd.setColor(getBadgeColor(mode));
+            bgd.setShape(GradientDrawable.OVAL);
+
+            badge.setBackgroundDrawable(bgd);
+
+            int bs = dp(32);
+            badge.setLayoutParams(new LinearLayout.LayoutParams(bs, bs));
+
+            LinearLayout texts = new LinearLayout(this);
+            texts.setOrientation(LinearLayout.VERTICAL);
+
+            LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
+                    0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    1f
+            );
+
+            tlp.leftMargin = dp(12);
+            texts.setLayoutParams(tlp);
+
+            TextView tTitle = new TextView(this);
+            tTitle.setText(title);
+            tTitle.setTextColor(Prefs.text(this));
+            tTitle.setTextSize(14f);
+            tTitle.setTypeface(null, Typeface.BOLD);
+
+            texts.addView(tTitle);
+
+            TextView tDesc = new TextView(this);
+            tDesc.setText(desc);
+            tDesc.setTextColor(Prefs.muted(this));
+            tDesc.setTextSize(11f);
+            tDesc.setPadding(0, dp(2), 0, 0);
+
+            texts.addView(tDesc);
+
+            item.addView(badge);
+            item.addView(texts);
+
+            drawerList.addView(item);
+        }
+    }
+
+    private GradientDrawable makeCard(int bg, int stroke) {
+        GradientDrawable g = new GradientDrawable();
+
+        g.setColor(bg);
+        g.setCornerRadius(dp(12));
+        g.setStroke(dp(1), stroke);
+
+        return g;
+    }
+
+    private String getIconForMode(String mode) {
+        if ("BUGHOST".equals(mode)) return "B";
+        if ("DPI".equals(mode)) return "D";
+        if ("WS".equals(mode)) return "W";
+        if ("SNI".equals(mode)) return "S";
+        if ("TLS".equals(mode)) return "T";
+        if ("PROXY".equals(mode)) return "P";
+        if ("PORT".equals(mode)) return "#";
+        if ("TECH".equals(mode)) return "F";
+        if ("DNS".equals(mode)) return "N";
+        if ("HEADERS".equals(mode)) return "H";
+        if ("HTTP_VER".equals(mode)) return "V";
+        if ("CDN".equals(mode)) return "C";
+        if ("PING".equals(mode)) return "@";
+        if ("CERT".equals(mode)) return "K";
+        if ("REDIRECT".equals(mode)) return "R";
+        if ("DEEPENUM".equals(mode)) return "E";
+        if ("TAKEOVER".equals(mode)) return "!";
+        if ("ENDPOINT".equals(mode)) return "?";
+        if ("WAYBACK".equals(mode)) return "A";
+        if ("SUBDOMAIN".equals(mode)) return "U";
+        if ("HOSTS".equals(mode)) return "M";
+        if ("REVIP".equals(mode)) return "I";
+        if ("CIDR".equals(mode)) return "%";
+        if ("GEO".equals(mode)) return "G";
+        if ("WHOIS".equals(mode)) return "O";
+        if ("SPLIT".equals(mode)) return "/";
+
+        return "*";
+    }
+
+    private int getBadgeColor(String mode) {
+        for (int i = 0; i < MENU.length; i++) {
+            if (MENU[i][2].equals(mode)) {
+                String t = MENU[i][3];
+
+                if ("offline".equals(t)) return Prefs.info(this);
+                if ("online".equals(t)) return Prefs.accent(this);
+
+                return Prefs.muted(this);
+            }
+        }
+
+        return Prefs.info(this);
+    }
+}
